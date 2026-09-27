@@ -17,8 +17,8 @@ Modeling MCP server and the PBIR authoring CLIs.
 
 ![Overview page](docs/screenshots/overview-light.png)
 
-> **Status: work in progress.** The data model, the Home and Overview pages, and the
-> navigation/theme framework on all pages are done. The analysis pages below are being built.
+> **Status:** all 11 pages are built. Polish (a dark-mode review of every page and a few
+> rendering quirks) is still in progress.
 
 ## Highlights
 
@@ -26,7 +26,7 @@ Modeling MCP server and the PBIR authoring CLIs.
   `Countries`, `Field Partners` and `Date` dimensions. `MPI Regions` and
   `Themes By Region` hang off the same dimensions. All relationships are 1:many and
   single-direction.
-- **49 documented measures** in a `_Measures` table, each with a
+- **60 documented measures** in a `_Measures` table, each with a
   *Purpose / Logic / Used in* comment header, a description, a format string and a
   display folder: lending volume, funding gap, gender, funding speed, poverty (MPI)
   coverage, partners and themes.
@@ -53,18 +53,34 @@ Modeling MCP server and the PBIR authoring CLIs.
 
 ## Report pages
 
-| Page | Status |
+| Page | What it shows |
 |---|---|
-| Home: landing page with animated stats and section cards | ✅ |
-| Overview: KPI strip, monthly trend, funding rings, map, top sectors, insight | ✅ (map pending) |
-| Geography & Poverty | 🚧 |
-| Sectors & Activities | 🚧 |
-| Borrowers & Gender | 🚧 |
-| Funding Dynamics | 🚧 |
-| Partners & Themes | 🚧 |
-| Explore | 🚧 |
-| About | 🚧 |
-| Country Profile (drill-through) and tooltip pages | 🚧 |
+| **Home** | Landing page: animated stats, year-by-year volume, funded ring, section cards |
+| **Overview** | KPI strip with sparklines, monthly requested vs funded, funding rings, map, top sectors, auto-generated insight |
+| **Geography & Poverty** | High-poverty share, loan-weighted MPI, MPI coverage, loan amount by MPI band, map, MPI vs lending scatter, country ranking |
+| **Sectors & Activities** | Metric switcher (field parameter) driving a sector ranking, sector-to-activity treemap, sector leaderboard |
+| **Borrowers & Gender** | "4 in 5 borrowers are women" panel, individual women vs men comparison, borrower make-up, women's share by sector and region, repayment interval |
+| **Funding Dynamics** | Days-to-fund histogram, funding speed by sector, pre-disbursal, lenders per loan |
+| **Partners & Themes** | Top field partners, top loan theme types, rural reach by sector |
+| **Explore** | Decomposition tree and key influencers (what drives full funding) |
+| **About** | Data source, metric definitions, data notes and last refresh time |
+| **Country Profile** | Drill-through: profile card, monthly trend, sectors, borrower make-up |
+| **Country Tooltip** | Report-page tooltip card used by the maps and the MPI scatter |
+
+| | |
+|---|---|
+| ![Geography & Poverty](docs/screenshots/geography.png) | ![Sectors & Activities](docs/screenshots/sectors.png) |
+| ![Borrowers & Gender](docs/screenshots/borrowers.png) | ![Funding Dynamics](docs/screenshots/funding.png) |
+| ![Partners & Themes](docs/screenshots/partners.png) | ![About](docs/screenshots/about.png) |
+
+## Selected findings
+
+- **40%** of the amount goes to low-poverty countries (MPI under 0.10) and only **14%** to
+  high or very-high poverty ones. About a quarter of the amount is in countries with no MPI score.
+- Individual women borrow less than individual men (**$593 vs $899**), get funded faster
+  (**8.5 vs 15.6** median days) and are more often fully funded (**94.6% vs 87.1%**).
+- Loans with **18–40 month terms** are about **3.5×** more likely to go unfunded (key influencers).
+- All **13,507** loans without a field partner are in **Kenya**.
 
 ## Repository layout
 
@@ -110,6 +126,7 @@ node gen.js            # rewrites all pages, nav bookmarks and icons
 - Country MPI is the unweighted mean of regional MPI scores (the source has no
   population weights). "High poverty" means country MPI ≥ 0.25.
 - Loans run from 1 Jan 2014 to 26 Jul 2017, so 2017 is a partial year.
+- 26 field-partner names had corrupted accents in the source file; they are repaired in the model.
 
 ## Credits
 

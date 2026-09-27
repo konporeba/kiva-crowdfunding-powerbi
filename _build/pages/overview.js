@@ -1,7 +1,7 @@
 // Overview: KPI strip (HTML) / monthly trend (native area) + funding rings (HTML) /
 // world map (native Azure Map) + top sectors (HTML) + insight (HTML).
 // Content area: x 88..1264, y 100..704.
-module.exports = ({ page, L, pos, visualFile, htmlVisual, CX }) => {
+module.exports = ({ page, PAGES, L, pos, visualFile, htmlVisual, CX }) => {
   const { Ls, Ld, Lb, Li, props, fillM, mProj, cProj, cardVCO } = L;
   const out = [];
   const add = (key, p, visual) => out.push(visualFile(page, key, p, visual));
@@ -46,7 +46,7 @@ module.exports = ({ page, L, pos, visualFile, htmlVisual, CX }) => {
       dataPoint: [props({ fill: fillM('Color Series Primary') })],
       legend: [props({ show: Lb(false) })]
     },
-    visualContainerObjects: cardVCO({ title: 'Where the money goes', padding: 8 })
+    visualContainerObjects: { ...cardVCO({ title: 'Where the money goes', padding: 8 }), visualTooltip: [props({ show: Lb(true), type: Ls('Canvas'), section: Ls(PAGES.find((p) => p.key === 'tooltip').id) })] }
   });
   add('sectors', pos(CX + 482, 492, 390, 212), htmlVisual('HTML Top Sectors'));
   add('insight', pos(CX + 884, 492, 292, 212), htmlVisual('HTML Overview Insight'));

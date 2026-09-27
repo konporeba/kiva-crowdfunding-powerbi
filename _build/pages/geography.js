@@ -1,6 +1,6 @@
 // Geography & Poverty: KPI strip + MPI band bar (HTML) / bubble map (Azure Map) /
 // MPI vs loan amount scatter (native) / country ranking matrix with data bars (native).
-module.exports = ({ page, L, pos, visualFile, htmlVisual, CX }) => {
+module.exports = ({ page, PAGES, L, pos, visualFile, htmlVisual, CX }) => {
   const { Ls, Ld, Lb, props, fillM, fillL, mProj, cProj, cardVCO, measureField } = L;
   const out = [];
   const add = (key, p, visual) => out.push(visualFile(page, key, p, visual));
@@ -21,7 +21,7 @@ module.exports = ({ page, L, pos, visualFile, htmlVisual, CX }) => {
       dataPoint: [props({ fill: fillM('Color Series Primary') })],
       legend: [props({ show: Lb(false) })]
     },
-    visualContainerObjects: cardVCO({ title: 'Loan amount by country', subtitle: 'Bubble size = amount requested. Hover for MPI and loan counts.', padding: 8 })
+    visualContainerObjects: { ...cardVCO({ title: 'Loan amount by country', subtitle: 'Bubble size = amount requested. Hover for MPI and loan counts.', padding: 8 }), visualTooltip: [props({ show: Lb(true), type: Ls('Canvas'), section: Ls(PAGES.find((p) => p.key === 'tooltip').id) })] }
   });
 
   add('scatter', pos(CX + 572, 232, 604, 228), {
@@ -39,7 +39,7 @@ module.exports = ({ page, L, pos, visualFile, htmlVisual, CX }) => {
       categoryLabels: [props({ show: Lb(false) })],
       legend: [props({ show: Lb(false) })]
     },
-    visualContainerObjects: cardVCO({ title: 'Poverty vs lending, per country', subtitle: 'Only the 58 loan countries with an MPI score are plotted.' })
+    visualContainerObjects: { ...cardVCO({ title: 'Poverty vs lending, per country', subtitle: 'Only the 58 loan countries with an MPI score are plotted.' }), visualTooltip: [props({ show: Lb(true), type: Ls('Canvas'), section: Ls(PAGES.find((p) => p.key === 'tooltip').id) })] }
   });
 
   const values = [

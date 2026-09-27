@@ -22,6 +22,8 @@ ref table Date
 ref table _Measures
 ref table 'Theme Mode'
 ref table 'Sector Metric'
+ref table 'Fund Time Bins'
+ref table 'Refresh Info'
 
 ref cultureInfo en-US
 

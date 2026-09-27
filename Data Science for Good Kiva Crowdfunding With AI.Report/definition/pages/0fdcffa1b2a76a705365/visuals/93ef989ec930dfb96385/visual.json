@@ -1,0 +1,17 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "93ef989ec930dfb96385",
+  "position": {
+    "x": 64,
+    "y": 0,
+    "z": 40000,
+    "height": 720,
+    "width": 208,
+    "tabOrder": 40000
+  },
+  "visualGroup": {
+    "displayName": "Nav drawer",
+    "groupMode": "ScaleMode"
+  },
+  "isHidden": true
+}

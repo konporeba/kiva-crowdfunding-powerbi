@@ -1,0 +1,16 @@
+/// One-row table stamped with the time the model was last refreshed (calculated tables are recomputed on every refresh). Read by the Last Refresh measure on the About page.
+table 'Refresh Info'
+	isHidden
+	lineageTag: 606373d6-2596-4acc-b8e0-bd3655bc1475
+
+	column 'Refreshed At'
+		lineageTag: a53a731b-7142-4095-9749-19c567092227
+		isNameInferred
+		sourceColumn: [Refreshed At]
+
+	partition 'Refresh Info' = calculated
+		mode: import
+		source =
+				-- Recomputed on every model refresh, so NOW() records the refresh time (UTC on the service).
+				ROW("Refreshed At", NOW())
+

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Nav Close - Country Profile",
+  "name": "Bookmark9e7417dbe135c13e042a",
+  "options": {
+    "targetVisualNames": [
+      "93ef989ec930dfb96385"
+    ],
+    "applyOnlyToTargetVisuals": true,
+    "suppressData": true,
+    "suppressActiveSection": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "0fdcffa1b2a76a705365",
+    "sections": {
+      "0fdcffa1b2a76a705365": {
+        "visualContainers": {},
+        "visualContainerGroups": {
+          "93ef989ec930dfb96385": {
+            "isHidden": true
+          }
+        }
+      }
+    }
+  }
+}

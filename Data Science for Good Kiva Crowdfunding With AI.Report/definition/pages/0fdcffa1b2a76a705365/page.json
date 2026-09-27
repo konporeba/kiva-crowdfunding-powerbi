@@ -1,0 +1,68 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "0fdcffa1b2a76a705365",
+  "displayName": "Country Profile",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "objects": {
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F1FAEE'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode",
+  "type": "Drillthrough",
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "Filterca66673bd56073147e110000",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Countries"
+              }
+            },
+            "Property": "Country"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "Pod6d4374df0e9cecaaacbf",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_Filterca66673bd56073147e110000",
+        "boundFilter": "Filterca66673bd56073147e110000",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Countries"
+              }
+            },
+            "Property": "Country"
+          }
+        }
+      }
+    ]
+  }
+}

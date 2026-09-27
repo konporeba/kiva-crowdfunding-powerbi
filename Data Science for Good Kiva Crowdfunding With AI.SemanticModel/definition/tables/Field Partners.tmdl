@@ -27,11 +27,23 @@ table 'Field Partners'
 		mode: import
 		source =
 				-- Field partner dimension shared by Loans and Themes By Region.
+				-- Names come from Themes By Region. 26 names in that source file carry mojibake (accented
+				-- letters stored as 'Í_', 'Í©', 'ÍÎ'); 'Í_' maps to different letters by context, so the
+				-- repairs below are explicit, context-specific substitutions verified against the names.
 				VAR _partnerNames =
 				    SELECTCOLUMNS(
 				        SUMMARIZE('Themes By Region', 'Themes By Region'[Partner ID], 'Themes By Region'[Field Partner Name]),
 				        "@Id", 'Themes By Region'[Partner ID],
-				        "@Name", 'Themes By Region'[Field Partner Name]
+				        "@Name",
+				            SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(
+				                'Themes By Region'[Field Partner Name],
+				                "ci" & UNICHAR(205) & "_n", "ci" & UNICHAR(243) & "n"),      -- Asociación / Fundación
+				                "Le" & UNICHAR(205) & "_n", "Le" & UNICHAR(243) & "n"),      -- León
+				                "g" & UNICHAR(205) & "_a", "g" & UNICHAR(237) & "a"),        -- Energía
+				                "f" & UNICHAR(205) & "_o", "f" & UNICHAR(237) & "o"),        -- Konfío
+				                "Per" & UNICHAR(205) & "_", "Per" & UNICHAR(250)),            -- Perú
+				                UNICHAR(205) & UNICHAR(169), UNICHAR(233)),                    -- é (Crédito, Réseau, ...)
+				                UNICHAR(205) & UNICHAR(206), UNICHAR(232))                     -- è (Zafèn)
 				    )
 				VAR _allPartnerIds =
 				    FILTER(

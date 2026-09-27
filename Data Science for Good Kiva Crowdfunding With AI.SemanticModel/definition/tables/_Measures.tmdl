@@ -229,10 +229,10 @@ table _Measures
 	/// Mean days from posting on Kiva to full funding, for fully funded loans. Excludes one loan with a negative value (data error).
 	measure 'Average Days To Fund' =
 			// Purpose : How quickly loans get funded (mean).
-			// Logic   : AVERAGE of days_to_fund over loans with a value >= 0
+			// Logic   : AVERAGE of days_to_fund over non-blank values >= 0
 			//           (never-funded loans are blank; one loan is -17.5 days, a data error).
 			// Used in : Funding Dynamics (speed by sector/country), KPI strip.
-			CALCULATE(AVERAGE('Loans'[days_to_fund]), KEEPFILTERS('Loans'[days_to_fund] >= 0))
+			CALCULATE(AVERAGE('Loans'[days_to_fund]), KEEPFILTERS(NOT ISBLANK('Loans'[days_to_fund]) && 'Loans'[days_to_fund] >= 0))
 		formatString: #,0.0
 		displayFolder: Funding Speed
 		lineageTag: 14d85931-172b-4ee0-82d5-a64e67d68168
@@ -240,9 +240,9 @@ table _Measures
 	/// Median days from posting to full funding (about 9.6 overall). Preferred over the mean because of a long tail up to 420 days.
 	measure 'Median Days To Fund' =
 			// Purpose : How quickly loans get funded, robust to the long tail.
-			// Logic   : MEDIAN of days_to_fund over loans with a value >= 0.
+			// Logic   : MEDIAN of days_to_fund over non-blank values >= 0.
 			// Used in : Funding Dynamics, Country Profile.
-			CALCULATE(MEDIAN('Loans'[days_to_fund]), KEEPFILTERS('Loans'[days_to_fund] >= 0))
+			CALCULATE(MEDIAN('Loans'[days_to_fund]), KEEPFILTERS(NOT ISBLANK('Loans'[days_to_fund]) && 'Loans'[days_to_fund] >= 0))
 		formatString: #,0.0
 		displayFolder: Funding Speed
 		lineageTag: e3f010c8-e929-4738-a926-7e42c52981f4
@@ -250,10 +250,11 @@ table _Measures
 	/// Share of fully funded loans that reached full funding within 7 days of posting.
 	measure 'Funded Within 7 Days %' =
 			// Purpose : Share of loans funded quickly.
-			// Logic   : Loans with 0 <= days_to_fund <= 7 / loans with days_to_fund >= 0.
-			// Used in : Funding Dynamics.
-			VAR _fast = CALCULATE(COUNTROWS('Loans'), KEEPFILTERS('Loans'[days_to_fund] >= 0 && 'Loans'[days_to_fund] <= 7))
-			VAR _funded = CALCULATE(COUNTROWS('Loans'), KEEPFILTERS('Loans'[days_to_fund] >= 0))
+			// Logic   : Loans with 0 <= days_to_fund <= 7 / loans with days_to_fund >= 0, both restricted
+			//           to non-blank days_to_fund (DAX treats blank as 0, which would count unfunded loans).
+			// Used in : Funding Dynamics, Overview KPI strip.
+			VAR _fast = CALCULATE(COUNTROWS('Loans'), KEEPFILTERS(NOT ISBLANK('Loans'[days_to_fund]) && 'Loans'[days_to_fund] >= 0 && 'Loans'[days_to_fund] <= 7))
+			VAR _funded = CALCULATE(COUNTROWS('Loans'), KEEPFILTERS(NOT ISBLANK('Loans'[days_to_fund]) && 'Loans'[days_to_fund] >= 0))
 			RETURN
 			    DIVIDE(_fast, _funded)
 		formatString: 0.0%
@@ -908,14 +909,367 @@ table _Measures
 		displayFolder: HTML
 		lineageTag: a9f9eac6-19ec-4b0a-a8b1-cd0dcebaf288
 
-	/// Tile label for the Sectors & Activities metric switcher (the option name). Used as the slicer's Label so the selected tile keeps visible text.
-	measure 'Sector Metric Label' =
-			// Purpose : Text for each tile of the metric switcher.
-			// Logic   : Evaluated per slicer tile, where exactly one option is in context.
-			// Used in : Sectors & Activities metric switcher (Label role).
-			SELECTEDVALUE('Sector Metric'[Sector Metric])
-		displayFolder: Theme
-		lineageTag: 6cf2db5b-af83-4b37-8f1c-6f19d48771b7
+	/// Gender impact panel (576x300): headline share of women among borrowers, a 10-person pictogram, women vs men borrower bar, and a comparison of individual women vs individual men on average loan, median days to fund and funded %.
+	measure 'HTML Gender Impact' =
+			// Purpose : The report's gender story in one panel.
+			// Logic   : Pictogram = ROUND(women share x 10) filled figures. Comparisons use
+			//           borrower_group_type 'Individual - Female' vs 'Individual - Male' so group
+			//           loans do not blur the like-for-like comparison.
+			// Used in : Borrowers & Gender page.
+			VAR _f = [Female Borrowers]
+			VAR _m = [Male Borrowers]
+			VAR _share = DIVIDE(_f, _f + _m)
+			VAR _filled = ROUND(_share * 10, 0)
+			VAR _inFive = ROUND(_share * 5, 0)
+			VAR _fem = "Individual - Female"
+			VAR _male = "Individual - Male"
+			VAR _avgF = CALCULATE([Average Loan Amount], KEEPFILTERS('Loans'[borrower_group_type] = _fem))
+			VAR _avgM = CALCULATE([Average Loan Amount], KEEPFILTERS('Loans'[borrower_group_type] = _male))
+			VAR _dF = CALCULATE([Median Days To Fund], KEEPFILTERS('Loans'[borrower_group_type] = _fem))
+			VAR _dM = CALCULATE([Median Days To Fund], KEEPFILTERS('Loans'[borrower_group_type] = _male))
+			VAR _pF = CALCULATE([Funded %], KEEPFILTERS('Loans'[borrower_group_type] = _fem))
+			VAR _pM = CALCULATE([Funded %], KEEPFILTERS('Loans'[borrower_group_type] = _male))
+			VAR _person = "<svg class='p{c} fu' style='animation-delay:{a}s' width='26' height='40' viewBox='0 0 26 40'><circle cx='13' cy='7' r='6'/><path d='M3 38V22a10 10 0 0 1 20 0v16z'/></svg>"
+			VAR _people =
+			    CONCATENATEX(
+			        GENERATESERIES(1, 10, 1),
+			        SUBSTITUTE(SUBSTITUTE(_person, "{c}", IF([Value] <= _filled, " on", "")), "{a}", FORMAT(0.15 + [Value] * 0.07, "0.00")),
+			        "",
+			        [Value], ASC
+			    )
+			VAR _row = "<tr><td>{l}</td><td class='n f'>{a}</td><td class='n'>{b}</td></tr>"
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".gi{height:296px;padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:18px;overflow:hidden;}"
+			        & ".big{font-family:'Segoe UI Semibold';font-size:30px;font-weight:600;line-height:1.1;margin:6px 0 4px;}"
+			        & ".big span{color:var(--accent);}"
+			        & ".ppl{display:flex;gap:4px;margin:12px 0 10px;}"
+			        & ".ppl svg{fill:var(--track);} .ppl svg.on{fill:var(--accent);}"
+			        & ".split{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--s);transform-origin:left;animation:grow 1.2s cubic-bezier(.2,.7,.2,1) .5s both;}"
+			        & ".split i{display:block;height:100%;background:var(--accent);}"
+			        & ".lg{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;}"
+			        & ".lg b{color:var(--text);font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & "table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}"
+			        & "th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:4px 6px;border-bottom:1px solid var(--grid);}"
+			        & "th.l{text-align:left;}"
+			        & "td{padding:9px 6px;border-bottom:1px solid var(--grid);}"
+			        & ".n{text-align:right;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".n.f{color:var(--accent);}"
+			        & ".note{font-size:10.5px;color:var(--muted);margin-top:10px;line-height:1.35;}"
+			        & "</style>"
+			        & "<div class='k'><div class='gi card'>"
+			        & "<div><div class='eyebrow fu d1'>Gender impact</div>"
+			        & "<div class='big fu d2'><span>" & _inFive & " in 5</span> borrowers are women</div>"
+			        & "<div class='ppl'>" & _people & "</div>"
+			        & "<div class='split'><i style='width:" & FORMAT(_share * 100, "0.0") & "%'></i></div>"
+			        & "<div class='lg fu d4'><span><b>" & FORMAT(_f, "#,0") & "</b> women</span><span><b>" & FORMAT(_m, "#,0") & "</b> men</span></div>"
+			        & "<div class='note fu d5'>" & FORMAT([Loans With Female Borrower %], "0%") & " of loans include at least one woman.</div></div>"
+			        & "<div class='fu d3'><div class='eyebrow'>Individual borrowers compared</div>"
+			        & "<table><tr><th class='l'></th><th>Women</th><th>Men</th></tr>"
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_row, "{l}", "Average loan"), "{a}", FORMAT(_avgF, "$#,0")), "{b}", FORMAT(_avgM, "$#,0"))
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_row, "{l}", "Median days to fund"), "{a}", FORMAT(_dF, "0.0")), "{b}", FORMAT(_dM, "0.0"))
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_row, "{l}", "Funded %"), "{a}", FORMAT(_pF, "0.0%")), "{b}", FORMAT(_pM, "0.0%"))
+			        & "</table><div class='note'>Single-borrower loans only, so group loans don&rsquo;t skew the comparison.</div></div>"
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: db8168c4-b21d-4459-a13d-9f75eb9e2d0a
+
+	/// Number of fully funded loans whose days_to_fund falls in the current Fund Time Bins range [Min Days, Max Days). Use with Fund Time Bins[Bin] for the Days To Fund histogram.
+	measure 'Loans In Fund Time Bin' =
+			// Purpose : Histogram counts for Days To Fund without a calculated column on Loans.
+			// Logic   : Read the bin bounds from the disconnected Fund Time Bins table and count fully
+			//           funded loans in [min, max). NOT ISBLANK is required: DAX treats a blank
+			//           days_to_fund (never funded) as 0, which would inflate the first bin.
+			// Used in : Funding Dynamics histogram.
+			VAR _min = COALESCE(SELECTEDVALUE('Fund Time Bins'[Min Days]), 0)
+			VAR _max = COALESCE(SELECTEDVALUE('Fund Time Bins'[Max Days]), 100000)
+			RETURN
+			    CALCULATE(
+			        COUNTROWS('Loans'),
+			        KEEPFILTERS(NOT ISBLANK('Loans'[days_to_fund]) && 'Loans'[days_to_fund] >= _min && 'Loans'[days_to_fund] < _max)
+			    )
+		formatString: #,0
+		displayFolder: Funding Speed
+		lineageTag: 8179d2da-c6ca-45ff-8ef6-ba654a81073b
+
+	/// Funding Dynamics KPI strip (1176x112): median and mean days to fund, share funded within a week, pre-disbursed share (with animated mini ring), lenders per loan and average contribution per lender.
+	measure 'HTML Funding KPIs' =
+			// Purpose : Headline funding-speed and lender numbers.
+			// Logic   : Tiles reuse existing measures; the pre-disbursal tile draws a small SVG ring
+			//           (caption kept short so it clears the ring).
+			// Used in : Funding Dynamics page, top row.
+			VAR _pre = [Pre-Disbursed Loan %]
+			VAR _circ = 2 * PI() * 20
+			VAR _tile = "<div class='t card fu d{d}'><div class='eyebrow'>{l}</div><div class='v'>{v}</div><div class='s'>{s}</div></div>"
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".fk{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;height:108px;overflow:hidden;}"
+			        & ".t{position:relative;padding:12px 14px;overflow:hidden;}"
+			        & ".t .v{font-family:'Segoe UI Semibold';font-size:26px;font-weight:600;line-height:1.15;margin-top:4px;}"
+			        & ".t .s{font-size:11px;color:var(--muted);}"
+			        & ".t .s.nr{max-width:62%;}"
+			        & ".mr{position:absolute;right:12px;top:30px;}"
+			        & "</style>"
+			        & "<div class='k'><div class='fk'>"
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "1"), "{l}", "Median days to fund"), "{v}", FORMAT([Median Days To Fund], "0.0")), "{s}", "mean " & FORMAT([Average Days To Fund], "0.0") & " days (long tail)")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "2"), "{l}", "Funded within a week"), "{v}", FORMAT([Funded Within 7 Days %], "0.0%")), "{s}", "of fully funded loans")
+			        & "<div class='t card fu d3'><div class='eyebrow'>Pre-disbursed</div><div class='v'>" & FORMAT(_pre, "0.0%") & "</div><div class='s nr'>paid out before posting</div>"
+			        & "<svg class='mr' width='48' height='48' viewBox='0 0 48 48'><circle cx='24' cy='24' r='20' fill='none' stroke='var(--track)' stroke-width='6'/><circle cx='24' cy='24' r='20' fill='none' stroke='var(--accent)' stroke-width='6' stroke-linecap='round' transform='rotate(-90 24 24)' stroke-dasharray='" & FORMAT(_circ, "0.00") & "' stroke-dashoffset='" & FORMAT(_circ * (1 - _pre), "0.00") & "' style='--c:" & FORMAT(_circ, "0.00") & ";animation:ring 1.4s cubic-bezier(.2,.7,.2,1) .4s both'/></svg></div>"
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "4"), "{l}", "Lenders per loan"), "{v}", FORMAT([Average Lenders per Loan], "0.0")), "{s}", FORMAT([Total Lender Commitments], "#,0") & " lender commitments")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "5"), "{l}", "Per lender"), "{v}", FORMAT([Average Amount per Lender], "$#,0.00")), "{s}", "average contribution to a loan")
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: a9d16117-e69c-494c-be75-6c1b32d38784
+
+	/// Partners & Themes KPI strip (1176x112): active field partners, share of loans whose partner has a name in the source, loan theme types, the leading theme type and its share, and the amount-weighted rural borrower share with a bar.
+	measure 'HTML Partners KPIs' =
+			// Purpose : Headline partner / theme / rural numbers.
+			// Logic   : Named-partner share uses Field Partners[Has Name In Source]; top theme = theme type
+			//           with the largest loan amount. Rural % comes from Themes By Region (partner-reported;
+			//           filtered by country and world region only - it has no date or Loans sector link).
+			// Used in : Partners & Themes page, top row.
+			VAR _loans = [Total Loans]
+			VAR _named = CALCULATE([Total Loans], KEEPFILTERS('Field Partners'[Has Name In Source] = "Yes"))
+			VAR _topTheme = TOPN(1, FILTER(VALUES('Loans'[loan_theme_type]), NOT ISBLANK('Loans'[loan_theme_type])), [Total Loan Amount], DESC)
+			VAR _topName = MAXX(_topTheme, 'Loans'[loan_theme_type])
+			VAR _topShare = DIVIDE(CALCULATE([Total Loan Amount], KEEPFILTERS('Loans'[loan_theme_type] = _topName)), [Total Loan Amount])
+			VAR _rural = [Rural Borrower %]
+			VAR _tile = "<div class='t card fu d{d}'><div class='eyebrow'>{l}</div><div class='v'>{v}</div><div class='s'>{s}</div></div>"
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".pk{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;height:108px;overflow:hidden;}"
+			        & ".t{position:relative;padding:12px 14px;overflow:hidden;}"
+			        & ".t .v{font-family:'Segoe UI Semibold';font-size:26px;font-weight:600;line-height:1.15;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".t .s{font-size:11px;color:var(--muted);}"
+			        & ".rb{height:6px;border-radius:6px;background:var(--track);margin-top:8px;overflow:hidden;}"
+			        & ".rb i{display:block;height:100%;background:var(--accent);border-radius:6px;}"
+			        & "</style>"
+			        & "<div class='k'><div class='pk'>"
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "1"), "{l}", "Active field partners"), "{v}", FORMAT([Active Field Partners], "#,0")), "{s}", "local lenders who disburse Kiva loans")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "2"), "{l}", "Named partners"), "{v}", FORMAT(DIVIDE(_named, _loans), "0.0%")), "{s}", "of loans have a partner named in the source")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "3"), "{l}", "Loan theme types"), "{v}", FORMAT([Loan Theme Types], "#,0")), "{s}", "distinct themes partners lend under")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "4"), "{l}", "Leading theme"), "{v}", _topName), "{s}", FORMAT(_topShare, "0%") & " of the amount requested")
+			        & "<div class='t card fu d5'><div class='eyebrow'>Rural borrowers</div><div class='v'>" & FORMAT(_rural, "0.0%") & "</div><div class='s'>amount-weighted, partner-reported</div><div class='rb'><i class='bar' style='width:" & FORMAT(_rural * 100, "0") & "%;animation-delay:.6s'></i></div></div>"
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: 6418603a-2349-4303-83e0-90d6041d8842
+
+	/// Field partner leaderboard (640x480): top 10 partners by loan amount with their main country, an animated amount bar, loan count, average loan and women's share.
+	measure 'HTML Partner Leaderboard' =
+			// Purpose : Rank the field partners behind Kiva lending.
+			// Logic   : TOPN 10 named partners by amount in context. The blank partner (13,507 loans with
+			//           no partner_id, all in Kenya) is excluded and called out in the footnote.
+			//           Main country = the partner's country with the most loans.
+			// Used in : Partners & Themes page.
+			VAR _top =
+			    ADDCOLUMNS(
+			        TOPN(
+			            10,
+			            FILTER(VALUES('Field Partners'[Field Partner Name]), NOT ISBLANK('Field Partners'[Field Partner Name]) && NOT ISBLANK([Total Loan Amount])),
+			            [Total Loan Amount], DESC
+			        ),
+			        "@amt", [Total Loan Amount],
+			        "@n", [Total Loans],
+			        "@avg", [Average Loan Amount],
+			        "@w", [Female Borrower %],
+			        "@ctry", MAXX(TOPN(1, VALUES('Countries'[Country]), [Total Loans], DESC), 'Countries'[Country])
+			    )
+			VAR _max = MAXX(_top, [@amt])
+			VAR _ranked = ADDCOLUMNS(_top, "@rank", RANKX(_top, [@amt], , DESC, Dense))
+			VAR _noPartner = CALCULATE([Total Loans], ISBLANK('Loans'[partner_id]))
+			VAR _rows =
+			    CONCATENATEX(
+			        _ranked,
+			        "<tr class='fu d" & MIN([@rank], 8) & "'><td class='rk'>" & [@rank] & "</td>"
+			            & "<td><div class='nm'>" & 'Field Partners'[Field Partner Name] & "</div><div class='ac'>" & [@ctry] & "</div></td>"
+			            & "<td class='bw'><div class='tr'><i class='bar' style='width:" & FORMAT(DIVIDE([@amt], _max) * 100, "0") & "%;animation-delay:." & MIN(9, 2 + [@rank]) & "s'></i></div><span>" & FORMAT([@amt] / 1e6, "$#,0.0") & "M</span></td>"
+			            & "<td class='n'>" & FORMAT([@n], "#,0") & "</td>"
+			            & "<td class='n'>" & FORMAT([@avg], "$#,0") & "</td>"
+			            & "<td class='n'>" & FORMAT([@w], "0%") & "</td></tr>",
+			        "",
+			        [@amt], DESC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".pl{height:476px;padding:12px 16px 10px;overflow:hidden;display:flex;flex-direction:column;}"
+			        & "table{width:100%;border-collapse:collapse;margin-top:4px;font-size:11.5px;}"
+			        & "th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:2px 6px 5px;border-bottom:1px solid var(--grid);}"
+			        & "th.l{text-align:left;}"
+			        & "td{padding:4px 6px;border-bottom:1px solid var(--grid);vertical-align:middle;}"
+			        & "tr:last-child td{border-bottom:none;}"
+			        & ".rk{width:18px;color:var(--accent);font-weight:600;}"
+			        & ".nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px;}"
+			        & ".ac{font-size:10px;color:var(--muted);}"
+			        & ".bw{width:30%;}"
+			        & ".bw .tr{display:inline-block;width:52%;height:6px;border-radius:6px;background:var(--track);overflow:hidden;vertical-align:middle;}"
+			        & ".bw .tr i{display:block;height:100%;border-radius:6px;background:var(--accent);}"
+			        & ".bw span{margin-left:8px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".n{text-align:right;white-space:nowrap;}"
+			        & ".foot{margin-top:auto;font-size:10.5px;color:var(--muted);padding-top:4px;}"
+			        & "</style>"
+			        & "<div class='k'><div class='pl card'><div class='eyebrow fu d1'>Top 10 field partners by amount</div>"
+			        & "<table><tr><th></th><th class='l'>Partner</th><th class='l'>Amount</th><th>Loans</th><th>Avg loan</th><th>Women</th></tr>"
+			        & _rows & "</table>"
+			        & IF(_noPartner > 0, "<div class='foot'>Excludes " & FORMAT(_noPartner, "#,0") & " loans with no field partner in the data (all in Kenya).</div>")
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: 3e735c5e-9482-4b81-96ca-14b8c496afc1
+
+	/// Timestamp of the last model refresh, from the Refresh Info calculated table.
+	measure 'Last Refresh' =
+			// Purpose : Show when the data was last refreshed.
+			// Logic   : Refresh Info is a one-row calculated table evaluated at refresh time.
+			// Used in : About page.
+			MAX('Refresh Info'[Refreshed At])
+		formatString: yyyy-mm-dd hh:nn
+		displayFolder: Report Info
+		lineageTag: a5fe9427-a8fc-4391-9699-a3e5d79251ce
+
+	/// About page (1176x604): report purpose and data source, metric definitions and data/methodology notes, with data coverage dates and the last refresh time.
+	measure 'HTML About' =
+			// Purpose : Document the report for portfolio viewers.
+			// Logic   : Static text plus live coverage dates, counts and the refresh timestamp.
+			// Used in : About page.
+			VAR _first = CALCULATE(MIN('Loans'[date]), REMOVEFILTERS())
+			VAR _last = CALCULATE(MAX('Loans'[date]), REMOVEFILTERS())
+			VAR _loans = FORMAT(CALCULATE([Total Loans], REMOVEFILTERS()), "#,0")
+			VAR _countries = FORMAT(CALCULATE([Countries With Loans], REMOVEFILTERS()), "0")
+			VAR _refresh = FORMAT([Last Refresh], "d mmm yyyy, hh:nn")
+			VAR _def = "<div class='df'><b>{t}</b><span>{d}</span></div>"
+			VAR _defs =
+			    SUBSTITUTE(SUBSTITUTE(_def, "{t}", "Requested / Funded"), "{d}", "Sum of loan_amount / funded_amount (USD). Funded % = funded &divide; requested.")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "Funding gap"), "{d}", "Requested amount lenders did not cover, per loan, floored at zero.")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "Days to fund"), "{d}", "Days from posting on Kiva to full funding; median preferred (long tail).")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "Pre-disbursed"), "{d}", "Partner paid the borrower before the loan was posted: Kiva&rsquo;s normal model.")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "Lender commitments"), "{d}", "Sum of lender_count: lender-loan participations, not unique people.")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "MPI"), "{d}", "Multidimensional Poverty Index, 0&ndash;1, higher = poorer (OPHI, via the Kaggle dataset).")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "Loan-weighted MPI"), "{d}", "Country MPI averaged by loan amount: poverty of the average lent dollar.")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "High-poverty share"), "{d}", "Share of MPI-covered lending in countries with MPI &ge; 0.25.")
+			    & SUBSTITUTE(SUBSTITUTE(_def, "{t}", "Rural %"), "{d}", "Partner-reported rural borrower share, weighted by theme-region amount.")
+			VAR _note = "<li>{n}</li>"
+			VAR _notes =
+			    SUBSTITUTE(_note, "{n}", "Country MPI is the unweighted mean of regional scores. The source has no population weights.")
+			    & SUBSTITUTE(_note, "{n}", "29 loan countries (about a quarter of the amount) have no MPI score. They are shown as <em>No MPI data</em>, not dropped.")
+			    & SUBSTITUTE(_note, "{n}", "Region names in loans are free text, so poverty is joined at country level only.")
+			    & SUBSTITUTE(_note, "{n}", "13,507 loans have no field partner (all in Kenya); 70 partner IDs have no name in the source.")
+			    & SUBSTITUTE(_note, "{n}", "26 partner names had corrupted accents in the source file and are repaired in the model.")
+			    & SUBSTITUTE(_note, "{n}", "One loan has a negative days-to-fund (data error) and is excluded from speed metrics.")
+			    & SUBSTITUTE(_note, "{n}", "2017 is a partial year (data ends " & FORMAT(_last, "d mmm yyyy") & ").")
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".ab{display:grid;grid-template-columns:1.05fr 1.2fr 1fr;gap:14px;height:600px;overflow:hidden;}"
+			        & ".ab .card{padding:18px 20px;overflow:hidden;}"
+			        & ".ab h2{font-family:'Segoe UI Semibold';font-size:18px;font-weight:600;margin:6px 0 10px;}"
+			        & ".ab p{font-size:12.5px;line-height:1.55;margin:0 0 10px;color:var(--text);}"
+			        & ".ab .muted{color:var(--muted);}"
+			        & ".facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}"
+			        & ".fact{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}"
+			        & ".fact b{display:block;font-family:'Segoe UI Semibold';font-size:18px;font-weight:600;}"
+			        & ".fact span{font-size:10.5px;color:var(--muted);}"
+			        & ".df{display:grid;grid-template-columns:128px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--grid);font-size:11.5px;line-height:1.4;}"
+			        & ".df b{font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".df span{color:var(--muted);}"
+			        & "ul{margin:4px 0 0;padding-left:18px;} li{font-size:11.5px;line-height:1.45;margin-bottom:8px;color:var(--text);}"
+			        & "li em{font-style:normal;color:var(--accent);font-weight:600;}"
+			        & ".stack{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--grid);}"
+			        & "</style>"
+			        & "<div class='k'><div class='ab'>"
+			        & "<div class='card fu d1'><div class='eyebrow'>About this report</div><h2>Kiva microloans, 2014&ndash;2017</h2>"
+			        & "<p>Kiva is a crowdfunding platform where individuals lend small amounts to entrepreneurs, farmers and students, mostly through local <b>field partners</b> who disburse and collect the loans.</p>"
+			        & "<p class='muted'>This report explores who borrows, what the money pays for, how quickly lenders respond, and whether lending reaches the poorest regions.</p>"
+			        & "<div class='facts'><div class='fact'><b>" & _loans & "</b><span>loans</span></div><div class='fact'><b>" & _countries & "</b><span>countries</span></div>"
+			        & "<div class='fact'><b>" & FORMAT(_first, "mmm yyyy") & "</b><span>first loan posted</span></div><div class='fact'><b>" & FORMAT(_last, "mmm yyyy") & "</b><span>last loan posted</span></div></div>"
+			        & "<p class='muted'><b>Source:</b> &ldquo;Data Science for Good: Kiva Crowdfunding&rdquo; (Kiva Microfunds, Kaggle): loans, loan themes, themes by region and MPI region locations.</p>"
+			        & "<div class='stack'>Built as a Power BI project (PBIP: TMDL model + PBIR report) with a star-schema model, documented DAX measures, HTML Content visuals and a light/dark theme toggle.<br/>Model last refreshed: <b>" & _refresh & "</b></div></div>"
+			        & "<div class='card fu d2'><div class='eyebrow'>Metric definitions</div>" & _defs & "</div>"
+			        & "<div class='card fu d3'><div class='eyebrow'>Data notes &amp; methodology</div><ul>" & _notes & "</ul></div>"
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: 0954a884-0edf-4e8e-ab00-5a1f6cd0a268
+
+	/// Country Profile drill-through card (380x604): country, world region, MPI band, six KPIs, rank by amount, top sector, top field partner and a one-line poverty context. Shows a prompt when no single country is in context.
+	measure 'HTML Country Profile' =
+			// Purpose : One-glance profile of the drilled-through country.
+			// Logic   : Requires exactly one Countries[Country] in context (drill-through filter).
+			//           Rank = position by amount among all countries with loans (other slicers kept).
+			// Used in : Country Profile drill-through page.
+			VAR _country = SELECTEDVALUE('Countries'[Country])
+			VAR _code = SELECTEDVALUE('Countries'[Country Code])
+			VAR _region = SELECTEDVALUE('Countries'[World Region])
+			VAR _band = SELECTEDVALUE('Countries'[MPI Band])
+			VAR _mpi = SELECTEDVALUE('Countries'[Country MPI])
+			VAR _rank = RANKX(FILTER(ALL('Countries'[Country]), NOT ISBLANK([Total Loan Amount])), [Total Loan Amount], , DESC, Dense)
+			VAR _of = COUNTROWS(FILTER(ALL('Countries'[Country]), NOT ISBLANK([Total Loan Amount])))
+			VAR _topSector = MAXX(TOPN(1, VALUES('Loans'[sector]), [Total Loan Amount], DESC), 'Loans'[sector])
+			VAR _topPartner = MAXX(TOPN(1, FILTER(VALUES('Field Partners'[Field Partner Name]), NOT ISBLANK('Field Partners'[Field Partner Name])), [Total Loan Amount], DESC), 'Field Partners'[Field Partner Name])
+			VAR _kpi = "<div class='kp'><b>{v}</b><span>{l}</span></div>"
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".cp{height:600px;padding:20px;overflow:hidden;display:flex;flex-direction:column;border-radius:14px;background:linear-gradient(165deg,#1D3557 0%,#457B9D 130%);color:#F1FAEE;}"
+			        & ".badge{width:54px;height:54px;border-radius:14px;background:rgba(241,250,238,.12);border:1px solid rgba(168,218,220,.4);display:flex;align-items:center;justify-content:center;font-family:'Segoe UI Semibold';font-size:20px;font-weight:600;color:#A8DADC;}"
+			        & ".cn{font-family:'Segoe UI Semibold';font-size:28px;font-weight:600;line-height:1.1;margin:14px 0 4px;}"
+			        & ".rg{font-size:12px;color:#A8DADC;}"
+			        & ".pill{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:12px;font-size:11px;background:rgba(168,218,220,.18);color:#F1FAEE;border:1px solid rgba(168,218,220,.35);}"
+			        & ".grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 14px;}"
+			        & ".kp{background:rgba(241,250,238,.08);border:1px solid rgba(168,218,220,.22);border-radius:10px;padding:10px 12px;}"
+			        & ".kp b{display:block;font-family:'Segoe UI Semibold';font-size:19px;font-weight:600;}"
+			        & ".kp span{font-size:10.5px;color:#A8DADC;}"
+			        & ".ln{font-size:12px;line-height:1.5;padding:8px 0;border-top:1px solid rgba(168,218,220,.22);}"
+			        & ".ln span{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#A8DADC;}"
+			        & ".empty{margin:auto 0;text-align:center;color:#A8DADC;font-size:13px;line-height:1.6;}"
+			        & "</style>"
+			        & "<div class='k'><div class='cp fu d1'>"
+			        & IF(
+			            ISBLANK(_country),
+			            "<div class='empty'>Right-click a country in any visual and choose <b>Drill through &rarr; Country Profile</b> to see its profile here.</div>",
+			            "<div class='badge'>" & COALESCE(_code, LEFT(_country, 2)) & "</div>"
+			                & "<div class='cn'>" & _country & "</div><div class='rg'>" & _region & " &middot; #" & _rank & " of " & _of & " countries by amount</div>"
+			                & "<div><span class='pill'>MPI: " & _band & IF(NOT ISBLANK(_mpi), " &middot; " & FORMAT(_mpi, "0.000")) & "</span></div>"
+			                & "<div class='grid'>"
+			                & SUBSTITUTE(SUBSTITUTE(_kpi, "{v}", FORMAT([Total Loan Amount] / 1e6, "$#,0.0") & "M"), "{l}", "requested")
+			                & SUBSTITUTE(SUBSTITUTE(_kpi, "{v}", FORMAT([Total Loans], "#,0")), "{l}", "loans")
+			                & SUBSTITUTE(SUBSTITUTE(_kpi, "{v}", FORMAT([Total Borrowers], "#,0")), "{l}", "borrowers")
+			                & SUBSTITUTE(SUBSTITUTE(_kpi, "{v}", FORMAT([Female Borrower %], "0%")), "{l}", "women")
+			                & SUBSTITUTE(SUBSTITUTE(_kpi, "{v}", FORMAT([Average Loan Amount], "$#,0")), "{l}", "average loan")
+			                & SUBSTITUTE(SUBSTITUTE(_kpi, "{v}", FORMAT([Median Days To Fund], "0.0") & " d"), "{l}", "median days to fund")
+			                & "</div>"
+			                & "<div class='ln'><span>Top sector</span>" & _topSector & "</div>"
+			                & "<div class='ln'><span>Top field partner</span>" & COALESCE(_topPartner, "No named partner") & "</div>"
+			                & "<div class='ln'><span>Funding</span>" & FORMAT([Funded %], "0.0%") & " of requested funded &middot; " & FORMAT([Pre-Disbursed Loan %], "0%") & " pre-disbursed</div>"
+			        )
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: a52526a8-4b10-4a69-82bf-fcd74cde2693
+
+	/// Report-page tooltip card (320x200) for country visuals: country, world region, amount, loans, women's share, median days to fund and MPI band.
+	measure 'HTML Country Tooltip' =
+			// Purpose : Rich hover card for maps and country visuals.
+			// Logic   : Evaluated in the hovered data point's filter context (one country).
+			// Used in : Country Tooltip page.
+			VAR _country = SELECTEDVALUE('Countries'[Country], "Multiple countries")
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".tt{height:196px;padding:14px 16px;border-radius:12px;background:#1D3557;color:#F1FAEE;overflow:hidden;}"
+			        & ".tt .n{font-family:'Segoe UI Semibold';font-size:17px;font-weight:600;}"
+			        & ".tt .r{font-size:10.5px;color:#A8DADC;margin-bottom:10px;}"
+			        & ".tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}"
+			        & ".tg b{display:block;font-family:'Segoe UI Semibold';font-size:15px;font-weight:600;}"
+			        & ".tg span{font-size:10px;color:#A8DADC;}"
+			        & ".tt .m{margin-top:12px;font-size:11px;color:#A8DADC;border-top:1px solid rgba(168,218,220,.25);padding-top:8px;}"
+			        & "</style>"
+			        & "<div class='k'><div class='tt'><div class='n'>" & _country & "</div><div class='r'>" & COALESCE(SELECTEDVALUE('Countries'[World Region]), "") & "</div>"
+			        & "<div class='tg'><div><b>" & FORMAT([Total Loan Amount] / 1e6, "$#,0.0") & "M</b><span>requested</span></div><div><b>" & FORMAT([Total Loans], "#,0") & "</b><span>loans</span></div><div><b>" & FORMAT([Female Borrower %], "0%") & "</b><span>women</span></div>"
+			        & "<div><b>" & FORMAT([Average Loan Amount], "$#,0") & "</b><span>avg loan</span></div><div><b>" & FORMAT([Median Days To Fund], "0.0") & "</b><span>median days</span></div><div><b>" & FORMAT([Funded %], "0%") & "</b><span>funded</span></div></div>"
+			        & "<div class='m'>MPI: " & COALESCE(SELECTEDVALUE('Countries'[MPI Band]), "n/a") & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: 8c8911bb-2a18-422a-b64b-e9f00a5b8d8a
 
 	/// Placeholder so the table has a column; not used.
 	column Placeholder

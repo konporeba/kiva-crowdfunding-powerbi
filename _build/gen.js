@@ -38,7 +38,10 @@ const PAGES = [
   { key: 'explore', name: 'Explore', icon: 'explore', nav: true, slicers: true,
     subtitle: 'Ask your own questions: break lending down by any dimension.' },
   { key: 'about', name: 'About', icon: 'about', nav: true, slicers: false,
-    subtitle: 'Data sources, metric definitions and methodology notes.' }
+    subtitle: 'Data sources, metric definitions and methodology notes.' },
+  { key: 'country', name: 'Country Profile', nav: false, slicers: false, hidden: true, drillthrough: { entity: 'Countries', column: 'Country' },
+    subtitle: 'Drill-through: right-click any country and choose Drill through > Country Profile.' },
+  { key: 'tooltip', name: 'Country Tooltip', nav: false, slicers: false, hidden: true, tooltip: true, width: 320, height: 200 }
 ];
 for (const p of PAGES) p.id = hid('page:' + p.key);
 
@@ -200,6 +203,7 @@ const iconFile = (name) => `kiva-icon-${name}.svg`;
 // ---------------------------------------------------------------- chrome per page
 function chrome(page, bookmarks) {
   const out = [];
+  if (page.tooltip) return out;
   const add = (key, position, visual, extra) => out.push(visualFile(page, key, position, visual, extra));
 
   // Full-canvas background (the page background itself cannot take a measure colour).
@@ -240,6 +244,9 @@ function chrome(page, bookmarks) {
     add('title', pos(CX, 14, 560, 34, 1000), shapeText({ text: page.name, size: 20, color: fillM('Color Text'), bold: true, family: 'Segoe UI Semibold', valign: 'top' }));
     add('subtitle', pos(CX, 50, 560, 34, 1010), shapeText({ text: page.subtitle || '', size: 9.5, color: fillM('Color Text Muted'), valign: 'top' }));
   }
+  if (page.drillthrough) {
+    add('back', pos(W - 16 - 132, 22, 132, 40, 1100), button({ icon: 'close', text: 'Back', align: 'left', fill: fillL('#457B9D'), fillHover: fillL('#30566E'), action: { type: 'Back' }, tooltip: 'Back to the previous page' }));
+  }
   if (page.slicers) {
     const sw = 150, gap = 10, x0 = W - 16 - (SLICERS.length * sw + (SLICERS.length - 1) * gap);
     SLICERS.forEach((s, i) => add('slicer-' + s.key, pos(x0 + i * (sw + gap), 10, sw, 76, 1100 + i), dropdownSlicer(s)));
@@ -275,9 +282,21 @@ function main() {
     const bm = { open: 'Bookmark' + hid(`bm-open:${page.key}`), close: 'Bookmark' + hid(`bm-close:${page.key}`) };
     const pageDir = path.join(pagesDir, page.id);
     fs.mkdirSync(path.join(pageDir, 'visuals'), { recursive: true });
-    const pageJson = { $schema: L.SCHEMA.page, name: page.id, displayName: page.name, displayOption: 'FitToPage', height: H, width: W,
+    const pageJson = { $schema: L.SCHEMA.page, name: page.id, displayName: page.name, displayOption: 'FitToPage', height: page.height || H, width: page.width || W,
       objects: { outspace: [props({ color: fillL('#F1FAEE') })] } };
     if (page.hidden) pageJson.visibility = 'HiddenInViewMode';
+    if (page.tooltip) {
+      pageJson.type = 'Tooltip';
+      pageJson.pageBinding = { name: 'Pod' + hid('tip:' + page.key), type: 'Tooltip', parameters: [] };
+    }
+    if (page.drillthrough) {
+      const dt = page.drillthrough;
+      const filterName = 'Filter' + hid('dt:' + page.key).slice(0, 20) + '0000';
+      const fieldExpr = L.columnField(dt.entity, dt.column);
+      pageJson.type = 'Drillthrough';
+      pageJson.filterConfig = { filters: [{ name: filterName, field: fieldExpr, type: 'Categorical', howCreated: 'Drillthrough' }] };
+      pageJson.pageBinding = { name: 'Pod' + hid('dtpod:' + page.key), type: 'Drillthrough', parameters: [{ name: 'Param_' + filterName, boundFilter: filterName, fieldExpr }] };
+    }
     fs.writeFileSync(path.join(pageDir, 'page.json'), JSON.stringify(pageJson, null, 2));
 
     let content = [];
@@ -294,7 +313,7 @@ function main() {
     }
 
     // Nav drawer bookmarks: toggle only the drawer group, keep data/filters/theme untouched.
-    for (const [kind, hidden] of [['open', false], ['close', true]]) {
+    for (const [kind, hidden] of (page.tooltip ? [] : [['open', false], ['close', true]])) {
       const b = {
         $schema: L.SCHEMA.bookmark,
         displayName: `Nav ${kind === 'open' ? 'Open' : 'Close'} - ${page.name}`,

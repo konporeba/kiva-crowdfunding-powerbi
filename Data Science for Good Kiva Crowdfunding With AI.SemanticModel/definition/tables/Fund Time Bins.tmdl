@@ -1,0 +1,57 @@
+/// Disconnected bin table for the Days To Fund histogram (Funding Dynamics). Each row is a half-open range [Min Days, Max Days); the Loans In Fund Time Bin measure counts fully funded loans in each range.
+table 'Fund Time Bins'
+	lineageTag: b79485ad-0319-459d-a622-1838ed87a972
+
+	/// Days-to-fund range label, e.g. 7-14 (days from posting to full funding).
+	column Bin
+		lineageTag: 1fa1f996-3049-442e-8fd9-961470282537
+		isNameInferred
+		sourceColumn: [Bin]
+		sortByColumn: 'Bin Order'
+
+	/// Sort key for Bin.
+	column 'Bin Order'
+		isHidden
+		lineageTag: 2931e56a-1795-4aff-9ece-9804d47dfeb4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Bin Order]
+
+	/// Inclusive lower bound of the bin (days).
+	column 'Min Days'
+		isHidden
+		lineageTag: 26d480ba-cdba-43a5-a012-5657419d9187
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Min Days]
+
+	/// Exclusive upper bound of the bin (days).
+	column 'Max Days'
+		isHidden
+		lineageTag: d0b861de-1d7e-45a2-9521-dd5dc425be81
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Max Days]
+
+	partition 'Fund Time Bins' = calculated
+		mode: import
+		source =
+				-- Histogram bins for Loans[days_to_fund]; half-open ranges [Min, Max).
+				DATATABLE(
+				    "Bin", STRING,
+				    "Bin Order", INTEGER,
+				    "Min Days", DOUBLE,
+				    "Max Days", DOUBLE,
+				    {
+				        { "< 1 day", 1, 0, 1 },
+				        { "1-3", 2, 1, 3 },
+				        { "3-7", 3, 3, 7 },
+				        { "7-14", 4, 7, 14 },
+				        { "14-21", 5, 14, 21 },
+				        { "21-30", 6, 21, 30 },
+				        { "30-45", 7, 30, 45 },
+				        { "45-60", 8, 45, 60 },
+				        { "60+", 9, 60, 100000 }
+				    }
+				)
+

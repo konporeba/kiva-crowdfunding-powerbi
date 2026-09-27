@@ -199,7 +199,7 @@ loan = -17.5, measures filter `>= 0`**), `is_pre_disbursed`, `is_fully_funded`.
   MPI country/country_kiva/MPI; TBR Partner ID, name, country, amount, number,
   rural_pct). lat/lon dataCategory set.
 
-**`_Measures` (M empty table, hidden `Placeholder` col) — 32 measures, all
+**`_Measures` (M empty table, hidden `Placeholder` col) — 32 measures at end of Phase 2 (60 after Phase 3), all
 tested, zero errors (`INFO.MEASURES()`).** Each has `// Purpose / Logic /
 Used in` header, description, formatString, displayFolder:
 - Lending Volume: Total Loans (671,205), Total Loan Amount ($565.4M), Total
@@ -213,7 +213,7 @@ Used in` header, description, formatString, displayFolder:
   person-level), Loans With Female Borrower % (79.2%, loan-level), Average
   Borrowers per Loan (2.02).
 - Funding Speed: Average/Median Days To Fund (14.6 / 9.6), Funded Within 7
-  Days % (42.2%), Pre-Disbursed Loan % (93.4%).
+  Days % (37.7% — corrected in Phase 3; was 42.2% due to a blank-as-0 bug), Pre-Disbursed Loan % (93.4%).
 - Geography & Poverty: Countries With Loans (87), Average Regional MPI,
   Loan-Weighted MPI (0.150), MPI Coverage % (73.7% of amount),
   High-Poverty Loan Amount % (18.1%; MPI ≥ 0.25, denominator = MPI-covered
@@ -226,7 +226,7 @@ Used in` header, description, formatString, displayFolder:
 (suggested to user). Loans column names still snake_case from source — a
 rename to business-friendly names was suggested, not done.
 
-### Phase 3 — Report: theme, nav, light/dark, pages — IN PROGRESS
+### Phase 3 — Report: theme, nav, light/dark, pages — ✅ BUILT (polish pending)
 User confirmed (2026-09-27): MPI ≥ 0.25 threshold OK; white + derived
 tints/shades of the 5 hexes may be used for surfaces and dark mode.
 Backup: `_backup\20260927-080801-pre-phase3\`.
@@ -308,12 +308,44 @@ About=cd89af5befbffa736945. **The scratchpad is session-scoped. Copy
   render (use action-less buttons for labels); advancedSlicerVisual tile colour
   comes from `fillCustom` (set show:false), and state selectors on background
   appear ineffective; projection `displayName` renames legend entries.
-- **Open:** the Azure Map renders blank (likely Azure Maps disabled in Desktop
-  Options → Security, or by tenant) — asked the user.
-- Next pages: Geography & Poverty, Sectors & Activities, Borrowers & Gender,
-  Funding Dynamics, Partners & Themes, Explore, About, Country Profile
-  (drillthrough), tooltip pages.
 - Every model change: MCP → ExportToTmdlFolder → `bash _build/sync-model.sh <dir>`.
+
+**Status 2026-09-27 ~09:50 — ALL 11 PAGES BUILT** (validator: 0 errors; each page
+screenshot-reviewed in light mode). Model: 60 measures, 11 tables.
+- Pages + builders (`_build/pages/*.js`): home, overview, geography, sectors,
+  borrowers, funding, partners, explore, about, country (drill-through on
+  Countries[Country], hidden, Back button, id `hid('page:country')`), tooltip
+  (320x200 report-page tooltip, no chrome; linked via `visualTooltip`
+  type 'Canvas' from the Overview map, Geography map and MPI scatter).
+- New model objects this phase: `Sector Metric` (field parameter: Amount, Loans,
+  Avg loan, Women, Days, Funded), `Fund Time Bins` (histogram bins) + `Loans In
+  Fund Time Bin`, `Refresh Info` (ROW(NOW()) calc table) + `Last Refresh`,
+  HTML measures: Geography KPIs, Sector Leaderboard, Gender Impact, Funding KPIs,
+  Partners KPIs, Partner Leaderboard, About, Country Profile, Country Tooltip.
+- **Bug fixed:** DAX treats a blank `days_to_fund` as 0 in comparisons, so
+  unfunded loans were counted as "< 1 day" / "funded within 7 days". All
+  days_to_fund filters now include `NOT ISBLANK(...)`. Funded Within 7 Days % is
+  **37.7%** (was wrongly 42.2%); median 9.6 and mean 14.6 were unaffected.
+- **Data fix:** 26 Field Partner names carried mojibake in the source
+  (`Í_`, `Í©`, `ÍÎ`); repaired with context-specific SUBSTITUTEs in the Field
+  Partners calc table (e.g. `ciÍ_n`→`ción`, `Í©`→`é`).
+- Findings worth surfacing: 40% of the amount goes to low-MPI countries and 14% to
+  high/very-high ones; individual women borrow $593 vs $899 for men, fund in 8.5 vs
+  15.6 median days and are funded 94.6% vs 87.1%; all 13,507 partner-less loans
+  are in Kenya; key influencers: 18–40 month terms → 3.5× more likely unfunded.
+- More PBIR gotchas: a classic slicer renders horizontal tiles only with
+  `mode:'Basic'` + `general.orientation: 1D` (the `HorizontalList` mode is ignored);
+  a tile slicer on a field parameter blanks the selected tile's text, and adding a
+  Label measure to it errors; treemap `FillRule` gradients are ignored, so use
+  per-category `dataPoint.fill` with `scopeId` Comparison selectors;
+  decompositionTree properties are prefixed (`positiveBarColor`,
+  `categoryLabelFontColor`, `levelTitleFontColor`…).
+- **Still open:** Azure Maps render blank in the Desktop screenshots (the user
+  says maps are enabled; blank may be screenshot-only because of WebGL) — ask the
+  user to confirm in the Desktop UI. The classic slicer's selected tile is PBI
+  grey (#333, off-palette). "(Blank)" loan theme appears in the Top-10 themes
+  chart (14.8k loans with no theme). Dark-mode screenshots have not been reviewed
+  for pages beyond Home/Overview. Nav drawer/toggle clicks not yet user-tested.
 
 **Planned mechanics:**
 - Light/dark: `Theme Mode` calc table (Light/Dark) + single-select button
