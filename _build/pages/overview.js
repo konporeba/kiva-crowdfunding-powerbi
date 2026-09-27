@@ -1,4 +1,4 @@
-// Overview: KPI strip (HTML) / monthly trend (native area) + funding rings (HTML) /
+// Overview: KPI strip (HTML) / monthly trend (HTML SVG) + funding rings (HTML) /
 // world map (native Azure Map) + top sectors (HTML) + insight (HTML).
 // Content area: x 88..1264, y 100..704.
 module.exports = ({ page, PAGES, L, pos, visualFile, htmlVisual, CX }) => {
@@ -9,26 +9,8 @@ module.exports = ({ page, PAGES, L, pos, visualFile, htmlVisual, CX }) => {
   // Row 1: KPI strip
   add('kpis', pos(CX, 100, 1176, 128), htmlVisual('HTML Overview KPIs'));
 
-  // Row 2: monthly trend (native) + funding rings (HTML)
-  const series = (m, color) => ({ properties: { fill: fillM(color) }, selector: { metadata: `_Measures.${m}` } });
-  add('trend', pos(CX, 240, 760, 236), {
-    visualType: 'areaChart',
-    query: {
-      queryState: {
-        Category: { projections: [{ ...cProj('Date', 'Month Start'), active: true }] },
-        Y: { projections: [{ ...mProj('Total Loan Amount'), displayName: 'Requested' }, { ...mProj('Total Funded Amount'), displayName: 'Funded' }] }
-      },
-      sortDefinition: { sort: [{ field: L.columnField('Date', 'Month Start'), direction: 'Ascending' }] }
-    },
-    objects: {
-      dataPoint: [series('Total Loan Amount', 'Color Series Primary'), series('Total Funded Amount', 'Color Series Secondary')],
-      lineStyles: [props({ strokeWidth: Ld(2), lineChartType: Ls('smooth'), showMarker: Lb(false) })],
-      legend: [props({ show: Lb(true), position: Ls('TopRight'), labelColor: fillM('Color Text Muted'), fontSize: Ld(9) })],
-      categoryAxis: [props({ labelColor: fillM('Color Text Muted'), fontSize: Ld(9), gridlineShow: Lb(false), showAxisTitle: Lb(false) })],
-      valueAxis: [props({ labelColor: fillM('Color Text Muted'), fontSize: Ld(9), gridlineShow: Lb(true), gridlineColor: fillM('Color Gridline'), gridlineStyle: Ls('dotted'), showAxisTitle: Lb(false), labelDisplayUnits: Ld(1000000) })]
-    },
-    visualContainerObjects: cardVCO({ title: 'Monthly lending: requested vs funded', subtitle: 'Loan amount by posting month (USD). Data ends 26 Jul 2017, so the last month is partial.' })
-  });
+  // Row 2: monthly trend + funding rings (HTML)
+  add('trend', pos(CX, 240, 760, 236), htmlVisual('HTML Monthly Trend'));
   add('rings', pos(CX + 772, 240, 404, 240), htmlVisual('HTML Funding Rings'));
 
   // Row 3: map + top sectors + insight

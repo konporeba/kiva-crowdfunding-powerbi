@@ -236,7 +236,7 @@ function chrome(page, bookmarks) {
 const FILTER_W = 340;
 function filterChrome(page, add, bookmarks) {
   const btnW = 140;
-  add('filters-chips', pos(W - 16 - btnW - 12 - 470, 26, 470, 44, 1080), htmlVisual('HTML Active Filters'));
+  add('filters-chips', pos(W - 16 - btnW - 12 - 470, 32, 470, 36, 1080), htmlVisual('HTML Active Filters'));
   add('filters-button', pos(W - 16 - btnW, 28, btnW, 40, 1090),
     button({ icon: 'filter', textMeasure: 'Filter Button Label', align: 'left', bold: true, fontSize: 10.5,
       fill: fillM('Color Nav'), fillHover: fillM('Color Nav Active'), action: { type: 'Bookmark', bookmark: bookmarks.fopen }, tooltip: 'Open filters' }));
@@ -328,7 +328,10 @@ function main() {
       const fieldExpr = L.columnField(dt.entity, dt.column);
       pageJson.type = 'Drillthrough';
       pageJson.filterConfig = { filters: [{ name: filterName, field: fieldExpr, type: 'Categorical', howCreated: 'Drillthrough' }] };
-      pageJson.pageBinding = { name: 'Pod' + hid('dtpod:' + page.key), type: 'Drillthrough', parameters: [{ name: 'Param_' + filterName, boundFilter: filterName, fieldExpr }] };
+      // acceptsFilterContext 'None' = 'Keep all filters' off: otherwise the source page's Light/Dark
+      // selection is carried in as a filter and clashes with this page's synced theme toggle (both
+      // filters on Theme Mode -> empty -> the page stays Light).
+      pageJson.pageBinding = { name: 'Pod' + hid('dtpod:' + page.key), type: 'Drillthrough', acceptsFilterContext: 'None', parameters: [{ name: 'Param_' + filterName, boundFilter: filterName, fieldExpr }] };
     }
     fs.writeFileSync(path.join(pageDir, 'page.json'), JSON.stringify(pageJson, null, 2));
 

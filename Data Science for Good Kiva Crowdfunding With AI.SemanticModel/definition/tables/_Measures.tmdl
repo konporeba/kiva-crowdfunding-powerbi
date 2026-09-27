@@ -488,9 +488,10 @@ table _Measures
 	/// Tile label for the Light/Dark toggle slicer: a sun for Light, a moon for Dark.
 	measure 'Theme Mode Icon' =
 			// Purpose : Icon label for each tile of the theme toggle slicer.
-			// Logic   : Evaluated per slicer tile (one Mode value in context).
+			// Logic   : Evaluated per slicer tile (one Mode value in context). The moon glyph (U+263E) sits
+			//           left of centre in Segoe UI, so a hair space (U+200A) nudges it under the sun.
 			// Used in : Theme toggle button slicer (Label role) in the nav rail.
-			SWITCH(SELECTEDVALUE('Theme Mode'[Mode]), "Light", UNICHAR(9728), "Dark", UNICHAR(9790))
+			SWITCH(SELECTEDVALUE('Theme Mode'[Mode]), "Light", UNICHAR(9728), "Dark", UNICHAR(8202) & UNICHAR(9790))
 		displayFolder: Theme
 		lineageTag: c8ae08be-1e94-4379-a214-37a2af54a7fd
 
@@ -531,11 +532,12 @@ table _Measures
 		displayFolder: HTML
 		lineageTag: d01237fc-d3dc-491f-b759-6b05fbdafaa4
 
-	/// Landing page hero (1176x688 HTML Content visual): headline, dataset stats with animated bars, an animated funded-share ring and six section cards. Native transparent buttons are overlaid on the cards for navigation because the HTML visual cannot change pages.
+	/// Landing page hero (1176x688 HTML Content visual): headline, dataset stats with animated bars, requested-by-year strip and six section cards. The right-hand panel is a separate visual ([HTML Loan Journey]); native transparent buttons are overlaid on the cards for navigation because the HTML visual cannot change pages.
 	measure 'HTML Home' =
 			// Purpose : Portfolio landing page - first impression of the report.
 			// Logic   : Absolute layout matched to the overlay buttons (cards grid starts at y=452,
-			//           3 columns x 2 rows of 381x110 with 16px gaps). Ring uses stroke-dashoffset animation.
+			//           3 columns x 2 rows of 381x110 with 16px gaps). The right-hand panel (x>=760, y<430)
+			//           is left empty for the [HTML Loan Journey] visual.
 			//           Year strip flags partial years (last loan date before December) automatically.
 			// Used in : Home page.
 			VAR _amount = FORMAT([Total Loan Amount] / 1e6, "$#,0.0") & "M"
@@ -544,12 +546,6 @@ table _Measures
 			VAR _borrowers = FORMAT([Total Borrowers] / 1e6, "0.00") & "M"
 			VAR _female = FORMAT([Female Borrower %], "0.0%")
 			VAR _days = FORMAT([Median Days To Fund], "0.0")
-			VAR _funded = [Funded %]
-			VAR _gap = FORMAT([Funding Gap] / 1e6, "$#,0.0") & "M"
-			VAR _lenders = FORMAT([Total Lender Commitments] / 1e6, "0.0") & "M"
-			VAR _circ = 2 * PI() * 108
-			VAR _offset = FORMAT(_circ * (1 - _funded), "0.0")
-			VAR _circTxt = FORMAT(_circ, "0.0")
 			VAR _stat = "<div class='stat card fu d{d}'><div class='sv'>{v}</div><div class='sl'>{l}</div><div class='sb'><i class='bar' style='width:{w}%;animation-delay:{a}s'></i></div></div>"
 			VAR _stats =
 			    SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_stat, "{d}", "3"), "{v}", _amount), "{l}", "requested across " & _loans & " loans"), "{w}", "100"), "{a}", ".5")
@@ -600,20 +596,9 @@ table _Measures
 			        & ".yl{font-size:11.5px;color:var(--muted);}"
 			        & ".yl span{margin-left:6px;font-size:10px;padding:1px 6px;border-radius:8px;background:var(--track);}"
 			        & ".yv{font-family:'Segoe UI Semibold';font-size:17px;font-weight:600;margin:1px 0 6px;}"
-			        & ".art{position:absolute;left:760px;top:0;width:416px;height:430px;}"
-			        & ".ringcard{position:absolute;inset:18px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(155deg,var(--hero1) 0%,var(--hero2) 100%);color:var(--onhero);overflow:hidden;}"
-			        & "@keyframes glow{0%,100%{opacity:.10;}50%{opacity:.30;}}"
-			        & ".ringcard .glow{position:absolute;border-radius:50%;background:var(--onheroaccent);filter:blur(46px);animation:glow 6s ease-in-out infinite;}"
-			        & ".rc{position:relative;animation:floaty 6s ease-in-out infinite;}"
-			        & ".rc .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}"
-			        & ".rv{font-family:'Segoe UI Semibold';font-size:44px;font-weight:600;line-height:1;}"
-			        & ".rl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--onhero2);margin-top:6px;}"
-			        & ".rfoot{position:relative;display:flex;gap:30px;margin-top:14px;font-size:12px;color:var(--onhero2);}"
-			        & ".rfoot b{display:block;font-family:'Segoe UI Semibold';font-size:17px;color:var(--onhero);font-weight:600;}"
-			        & ".dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:6px;box-shadow:0 0 0 3px var(--badsoft);}"
 			        & ".sect{position:absolute;left:0;top:424px;}"
 			        & ".nav{position:absolute;width:381px;height:110px;display:flex;align-items:center;gap:14px;padding:0 18px;}"
-			        & ".ni{flex:none;width:46px;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--card2);color:var(--accent);border:1px solid var(--border);}"
+			        & ".ni{flex:none;width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:var(--card2);color:var(--accent);border:1px solid var(--border);}"
 			        & ".nt{font-family:'Segoe UI Semibold';font-size:15px;font-weight:600;}"
 			        & ".nd{font-size:12px;color:var(--muted);margin-top:2px;}"
 			        & ".na{margin-left:auto;font-size:20px;color:var(--accent);}"
@@ -626,15 +611,6 @@ table _Measures
 			        & "<div class='stats'>" & _stats & "</div>"
 			        & "</div>"
 			        & "<div class='years fu d7'><div class='ttl'>Requested<br/>by year</div>" & _yearHtml & "</div>"
-			        & "<div class='art fu d3'><div class='ringcard'>"
-			        & "<div class='glow' style='width:180px;height:180px;left:-40px;top:-50px'></div><div class='glow' style='width:140px;height:140px;right:-30px;bottom:-20px;animation-delay:3s'></div>"
-			        & "<div class='rc'><svg width='250' height='250' viewBox='0 0 250 250'>"
-			        & "<circle cx='125' cy='125' r='108' fill='none' stroke='var(--herofill)' stroke-width='16'/>"
-			        & "<circle cx='125' cy='125' r='108' fill='none' stroke='var(--onheroaccent)' stroke-width='16' stroke-linecap='round' transform='rotate(-90 125 125)' stroke-dasharray='" & _circTxt & "' stroke-dashoffset='" & _offset & "' style='--c:" & _circTxt & ";animation:ring 1.8s cubic-bezier(.2,.7,.2,1) .4s both'/>"
-			        & "<circle cx='125' cy='125' r='84' fill='none' stroke='var(--herofill)' stroke-width='1' stroke-dasharray='2 6'/>"
-			        & "</svg><div class='ctr'><div class='rv'>" & FORMAT(_funded, "0.0%") & "</div><div class='rl'>of requests funded</div></div></div>"
-			        & "<div class='rfoot'><div><b>" & _lenders & "</b>lender commitments</div><div><b>" & _gap & "</b><span class='dot'></span>funding gap</div></div>"
-			        & "</div></div>"
 			        & "<div class='sect eyebrow fu d3'>Explore the report</div>"
 			        & _c1 & _c2 & _c3 & _c4 & _c5 & _c6
 			        & "</div></div>"
@@ -859,34 +835,70 @@ table _Measures
 		displayFolder: HTML
 		lineageTag: 271bdf6e-e913-4134-bd09-a4e9224c73fb
 
-	/// Sector leaderboard (584x300): top 6 sectors by amount with an animated share bar, average loan, women's share, median days to fund and the sector's largest activity.
+	/// Sector leaderboard (584x300) that follows the metric switcher: top 6 sectors by the selected metric (fastest 6 for days to fund) with an animated bar for that metric, three other metrics for context and each sector's largest activity.
 	measure 'HTML Sector Leaderboard' =
-			// Purpose : Compare sectors across several dimensions in one compact table.
-			// Logic   : TOPN 6 sectors by amount in context; bar = share of the leader;
-			//           top activity = activity with the highest amount inside each sector.
+			// Purpose : Compare the leading sectors across several dimensions in one compact table.
+			// Logic   : TOPN 6 sectors by [Sector Metric Value] (flipped for lower-is-better); the bar column
+			//           shows the selected metric as a share of the leader; the three context columns are
+			//           Amount / Avg loan / Women / Days minus the selected one; top activity = the activity
+			//           with the highest amount inside each sector.
 			// Used in : Sectors & Activities page.
-			VAR _top =
+			VAR _m = [Selected Sector Metric]
+			VAR _low = [Sector Metric Lower Is Better]
+			VAR _short = SWITCH(_m, "Amount", "Amount", "Loans", "Loans", "Avg loan", "Avg loan", "Women", "Women", "Days", "Days to fund", "Funded", "Funded")
+			VAR _base =
 			    ADDCOLUMNS(
-			        TOPN(6, FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Total Loan Amount])), [Total Loan Amount], DESC),
+			        FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Sector Metric Value])),
+			        "@v", [Sector Metric Value]
+			    )
+			VAR _top = TOPN(6, ADDCOLUMNS(_base, "@key", IF(_low, -[@v], [@v])), [@key], DESC)
+			VAR _det =
+			    ADDCOLUMNS(
+			        _top,
 			        "@amt", [Total Loan Amount],
 			        "@avg", [Average Loan Amount],
 			        "@w", [Female Borrower %],
 			        "@d", [Median Days To Fund],
-			        "@act", MAXX(TOPN(1, VALUES('Loans'[activity]), [Total Loan Amount], DESC), 'Loans'[activity])
+			        "@act", MAXX(TOPN(1, VALUES('Loans'[activity]), [Total Loan Amount], DESC), 'Loans'[activity]),
+			        "@fmt",
+			            SWITCH(_m,
+			                "Amount", FORMAT([@v] / 1e6, "$#,0.0") & "M",
+			                "Loans", IF([@v] >= 1000, FORMAT([@v] / 1000, "#,0.0") & "K", FORMAT([@v], "#,0")),
+			                "Avg loan", FORMAT([@v], "$#,0"),
+			                "Days", FORMAT([@v], "0.0") & " d",
+			                FORMAT([@v], "0.0%"))
 			    )
-			VAR _max = MAXX(_top, [@amt])
-			VAR _ranked = ADDCOLUMNS(_top, "@rank", RANKX(_top, [@amt], , DESC, Dense))
+			VAR _max = MAXX(_det, [@v])
+			VAR _ranked = ADDCOLUMNS(_det, "@rank", RANKX(_det, [@key], , DESC, Dense))
+			VAR _cols =
+			    TOPN(
+			        3,
+			        FILTER(DATATABLE("Col", STRING, "Ord", INTEGER, {{"Amount", 1}, {"Avg loan", 2}, {"Women", 3}, {"Days", 4}}), [Col] <> _m),
+			        [Ord], ASC
+			    )
+			VAR _heads = CONCATENATEX(_cols, "<th>" & [Col] & "</th>", "", [Ord], ASC)
 			VAR _rows =
 			    CONCATENATEX(
 			        _ranked,
-			        "<tr class='fu d" & MIN([@rank], 8) & "'><td class='rk'>" & [@rank] & "</td>"
+			        "<tr class='fu d" & MIN([@rank] + 1, 8) & "'><td class='rk'>" & [@rank] & "</td>"
 			            & "<td><div class='nm'>" & 'Loans'[sector] & "</div><div class='ac'>top: " & [@act] & "</div></td>"
-			            & "<td class='bw'><div class='tr'><i class='bar' style='width:" & FORMAT(DIVIDE([@amt], _max) * 100, "0") & "%;animation-delay:." & (2 + [@rank]) & "s'></i></div><span>" & FORMAT([@amt] / 1e6, "$#,0.0") & "M</span></td>"
-			            & "<td class='n'>" & FORMAT([@avg], "$#,0") & "</td>"
-			            & "<td class='n'>" & FORMAT([@w], "0%") & "</td>"
-			            & "<td class='n'>" & FORMAT([@d], "0.0") & "</td></tr>",
+			            & "<td class='bw'><div class='tr'><i class='bar' style='width:" & FORMAT(DIVIDE([@v], _max) * 100, "0") & "%;animation-delay:." & (2 + [@rank]) & "s'></i></div><span>" & [@fmt] & "</span></td>"
+			            & CONCATENATEX(
+			                _cols,
+			                "<td class='n'>"
+			                    & SWITCH([Col],
+			                        "Amount", FORMAT([@amt] / 1e6, "$#,0.0") & "M",
+			                        "Avg loan", FORMAT([@avg], "$#,0"),
+			                        "Women", FORMAT([@w], "0%"),
+			                        "Days", FORMAT([@d], "0.0"))
+			                    & "</td>",
+			                "",
+			                [Ord], ASC
+			            )
+			            & "</tr>",
 			        "",
-			        [@amt], DESC
+			        [@rank], ASC,
+			        'Loans'[sector], ASC
 			    )
 			RETURN
 			    [HTML Theme CSS]
@@ -895,19 +907,21 @@ table _Measures
 			        & "table{width:100%;border-collapse:collapse;margin-top:6px;font-size:11.5px;}"
 			        & "th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:2px 6px 6px;border-bottom:1px solid var(--grid);}"
 			        & "th.l{text-align:left;}"
+			        & "th.hl{color:var(--accent);}"
 			        & "td{padding:5px 6px;border-bottom:1px solid var(--grid);vertical-align:middle;}"
 			        & "tr:last-child td{border-bottom:none;}"
 			        & ".rk{width:18px;color:var(--accent);font-weight:600;}"
 			        & ".nm{font-weight:600;}"
 			        & ".ac{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}"
-			        & ".bw{width:34%;}"
-			        & ".bw .tr{display:inline-block;width:62%;height:6px;border-radius:6px;background:var(--track);overflow:hidden;vertical-align:middle;}"
+			        & ".bw{width:36%;}"
+			        & ".bw .tr{display:inline-block;width:56%;height:6px;border-radius:6px;background:var(--track);overflow:hidden;vertical-align:middle;}"
 			        & ".bw .tr i{display:block;height:100%;border-radius:6px;background:var(--accent);}"
-			        & ".bw span{margin-left:8px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".bw span{margin-left:8px;font-family:'Segoe UI Semibold';font-weight:600;white-space:nowrap;}"
 			        & ".n{text-align:right;white-space:nowrap;}"
+			        & ".eyebrow b{color:var(--accent);font-weight:600;}"
 			        & "</style>"
-			        & "<div class='k'><div class='sl card'><div class='eyebrow fu d1'>Sector leaderboard &middot; top 6</div>"
-			        & "<table><tr><th></th><th class='l'>Sector</th><th class='l'>Amount</th><th>Avg loan</th><th>Women</th><th>Days</th></tr>"
+			        & "<div class='k'><div class='sl card'><div class='eyebrow fu d1'>Sector leaderboard &middot; " & IF(_low, "fastest 6 by ", "top 6 by ") & "<b>" & _short & "</b></div>"
+			        & "<table><tr><th></th><th class='l'>Sector</th><th class='l hl'>" & _short & IF(_low, " &#9650;", " &#9660;") & "</th>" & _heads & "</tr>"
 			        & _rows & "</table></div></div>"
 		displayFolder: HTML
 		lineageTag: a9f9eac6-19ec-4b0a-a8b1-cd0dcebaf288
@@ -1389,6 +1403,1641 @@ table _Measures
 			        & "</div></div>"
 		displayFolder: HTML
 		lineageTag: 5281c674-24ab-40b2-8994-fa927c9d0dda
+
+	/// Home hero panel (416x412): 'The life of a typical Kiva loan' as an animated five-step timeline (request, pre-disbursal, crowdfunding, time to full funding, repayment) with live figures, followed by a funded-vs-gap bar. Medians are used where 'typical' applies; lender figures are averages.
+	measure 'HTML Loan Journey' =
+			// Purpose : Explain how Kiva works, using the data: one typical loan from request to repayment.
+			// Logic   : Five milestones on an animated rail. 'Typical' = medians (loan size, days to fund,
+			//           term); lenders per loan and amount per lender are averages (no lender-level data).
+			//           Bottom bar splits the requested amount into funded vs the funding gap (Bad colour).
+			// Used in : Home page, right-hand hero panel.
+			VAR _loans = [Total Loans]
+			VAR _monthly = DIVIDE(CALCULATE([Total Loans], KEEPFILTERS('Loans'[repayment_interval] = "monthly")), _loans)
+			VAR _medianTerm = MEDIAN('Loans'[term_in_months])
+			VAR _funded = [Total Funded Amount]
+			VAR _gap = [Funding Gap]
+			VAR _share = DIVIDE(_funded, _funded + _gap)
+			VAR _ico = "<svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>{p}</svg>"
+			VAR _step = "<div class='st fu d{d}'><div class='ic'>{i}</div><div><div class='tt'>{t}</div><div class='sub'>{s}</div></div><div class='pill'>{p}</div></div>"
+			VAR _s1 = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_step, "{d}", "2"),
+			    "{i}", SUBSTITUTE(_ico, "{p}", "<circle cx='12' cy='12' r='8.5'/><path d='M12 7.5v9'/><path d='M14.5 9.5c-.6-.9-1.5-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.8 0 2.6 5 1.3 5 4 0 1.1-1.1 1.9-2.6 1.9-1.1 0-2.1-.4-2.6-1.3'/>")),
+			    "{t}", "<b>" & FORMAT([Median Loan Amount], "$#,0") & "</b> requested"),
+			    "{s}", "median request &middot; " & FORMAT([Female Borrower %], "0%") & " women borrowers"),
+			    "{p}", FORMAT(_loans / 1000, "#,0") & "K loans")
+			VAR _s2 = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_step, "{d}", "3"),
+			    "{i}", SUBSTITUTE(_ico, "{p}", "<path d='M4 12h14'/><path d='M13 6l6 6-6 6'/>")),
+			    "{t}", "Paid out <b>before</b> posting"),
+			    "{s}", "the field partner lends first, Kiva refills"),
+			    "{p}", FORMAT([Pre-Disbursed Loan %], "0%") & " of loans")
+			VAR _s3 = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_step, "{d}", "4"),
+			    "{i}", SUBSTITUTE(_ico, "{p}", "<circle cx='9' cy='8' r='3.5'/><path d='M2.5 20a6.5 6.5 0 0 1 13 0'/><circle cx='17.5' cy='9' r='2.5'/><path d='M16 14.5a5 5 0 0 1 5.5 5.5'/>")),
+			    "{t}", "<b>~" & FORMAT([Average Lenders per Loan], "0") & " lenders</b> chip in"),
+			    "{s}", "about " & FORMAT([Average Amount per Lender], "$#,0") & " each (averages)"),
+			    "{p}", FORMAT([Total Lender Commitments] / 1e6, "0.0") & "M commitments")
+			VAR _s4 = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_step, "{d}", "5"),
+			    "{i}", SUBSTITUTE(_ico, "{p}", "<circle cx='12' cy='13' r='8'/><path d='M12 9v4l2.5 2.5'/><path d='M9 2h6'/>")),
+			    "{t}", "Funded in <b>" & FORMAT([Median Days To Fund], "0.0") & " days</b>"),
+			    "{s}", "median &middot; " & FORMAT([Funded Within 7 Days %], "0%") & " within a week"),
+			    "{p}", FORMAT([Fully Funded Loan %], "0%") & " fully funded")
+			VAR _s5 = SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_step, "{d}", "6"),
+			    "{i}", SUBSTITUTE(_ico, "{p}", "<path d='M17 3l4 4-4 4'/><path d='M3 12V10a3 3 0 0 1 3-3h15'/><path d='M7 21l-4-4 4-4'/><path d='M21 12v2a3 3 0 0 1-3 3H3'/>")),
+			    "{t}", "Repaid over <b>" & FORMAT(_medianTerm, "0") & " months</b>"),
+			    "{s}", "median repayment term"),
+			    "{p}", FORMAT(_monthly, "0%") & " monthly")
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".lj{position:relative;height:408px;padding:18px 20px 16px;overflow:hidden;background:linear-gradient(155deg,var(--hero1) 0%,var(--hero2) 100%);color:var(--onhero);border-radius:var(--radius);}"
+			        & "@keyframes glow{0%,100%{opacity:.08;}50%{opacity:.22;}}"
+			        & ".lj .glow{position:absolute;width:200px;height:200px;right:-70px;top:-80px;border-radius:50%;background:var(--onheroaccent);filter:blur(56px);animation:glow 7s ease-in-out infinite;}"
+			        & ".lj .eyebrow{position:relative;color:var(--onhero2);}"
+			        & ".steps{position:relative;margin-top:10px;}"
+			        & ".rail{position:absolute;left:15px;top:18px;bottom:18px;width:2px;background:var(--heroline);}"
+			        & ".rail i{display:block;height:100%;background:var(--onheroaccent);transform-origin:top center;animation:growY 1.8s cubic-bezier(.3,.6,.2,1) .25s both;}"
+			        & ".st{position:relative;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;height:52px;}"
+			        & ".ic{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--hero2);border:1.5px solid var(--onheroaccent);color:var(--onheroaccent);}"
+			        & ".tt{font-family:'Segoe UI Semibold','Segoe UI';font-size:14px;font-weight:600;line-height:1.2;}"
+			        & ".tt b{color:var(--onheroaccent);font-weight:600;}"
+			        & ".sub{font-size:11px;color:var(--onhero2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:215px;}"
+			        & ".pill{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:10px;background:var(--herofill);border:1px solid var(--heroline);white-space:nowrap;}"
+			        & ".fb{position:relative;margin-top:12px;padding-top:12px;border-top:1px solid var(--heroline);}"
+			        & ".fr{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:var(--onhero2);}"
+			        & ".fr b{font-family:'Segoe UI Semibold';font-size:16px;color:var(--onhero);font-weight:600;margin-right:4px;}"
+			        & ".fr .g b{color:var(--bad);}"
+			        & ".track{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:7px 0 6px;background:var(--bad);transform-origin:left center;animation:grow 1.3s cubic-bezier(.2,.7,.2,1) .9s both;}"
+			        & ".track i{display:block;height:100%;background:var(--onheroaccent);border-right:2px solid var(--hero2);}"
+			        & ".cap{font-size:10.5px;color:var(--onhero2);}"
+			        & "</style>"
+			        & "<div class='k'><div class='lj fu d1'><div class='glow'></div>"
+			        & "<div class='eyebrow'>The life of a typical Kiva loan</div>"
+			        & "<div class='steps'><div class='rail'><i></i></div>" & _s1 & _s2 & _s3 & _s4 & _s5 & "</div>"
+			        & "<div class='fb fu d7'><div class='fr'><span><b>" & FORMAT(_funded / 1e6, "$#,0.0") & "M</b>funded</span><span class='g'><b>" & FORMAT(_gap / 1e6, "$#,0.0") & "M</b>funding gap</span></div>"
+			        & "<div class='track'><i style='width:" & FORMAT(_share * 100, "0.0") & "%'></i></div>"
+			        & "<div class='cap'>" & FORMAT([Funded %], "0.0%") & " of the " & FORMAT([Total Loan Amount] / 1e6, "$#,0.0") & "M requested was funded by Kiva lenders</div></div>"
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: 4ef7e869-588e-47b6-a751-2c1091aaf3b9
+
+	/// Metric chosen in the Sectors & Activities switcher (Amount, Loans, Avg loan, Women, Days, Funded). Defaults to Amount.
+	measure 'Selected Sector Metric' =
+			// Purpose : Which metric the Sectors & Activities page is showing.
+			// Logic   : The switcher filters the field-parameter table. Its label column is part of a
+			//           composite key (SELECTEDVALUE on it errors), so read the order column and map it back.
+			//           Falls back to Amount when nothing or several are selected.
+			// Used in : Sector Metric Value / Benchmark / Color, HTML Sector Ranking, HTML Sector Leaderboard.
+			SWITCH(
+			    SELECTEDVALUE('Sector Metric'[Sector Metric Order], 0),
+			    1, "Loans",
+			    2, "Avg loan",
+			    3, "Women",
+			    4, "Days",
+			    5, "Funded",
+			    "Amount"
+			)
+		displayFolder: Sector Metric
+		lineageTag: a03e53e3-ba29-4a06-8d22-0cfa9d5996fe
+
+	/// TRUE when a lower value of the selected sector metric is better (median days to fund).
+	measure 'Sector Metric Lower Is Better' =
+			// Purpose : Direction of 'good' for the selected metric.
+			// Logic   : Only days to fund is lower-is-better.
+			// Used in : HTML Sector Ranking, HTML Sector Leaderboard, Sector Metric Color.
+			[Selected Sector Metric] = "Days"
+		displayFolder: Sector Metric
+		lineageTag: 23748abc-dc9b-45f9-8e86-8c27a569aaad
+
+	/// Value of the selected Sectors-page metric in the current context: loan amount, loans, average loan, women's share, median days to fund or funded share.
+	measure 'Sector Metric Value' =
+			// Purpose : One measure that follows the metric switcher.
+			// Logic   : SWITCH over the selected metric name.
+			// Used in : Sectors & Activities (ranking, leaderboard, treemap colour).
+			SWITCH(
+			    [Selected Sector Metric],
+			    "Amount", [Total Loan Amount],
+			    "Loans", [Total Loans],
+			    "Avg loan", [Average Loan Amount],
+			    "Women", [Female Borrower %],
+			    "Days", [Median Days To Fund],
+			    "Funded", [Funded %]
+			)
+		displayFolder: Sector Metric
+		lineageTag: 703e60f1-69c5-48f0-bd30-f6080ad3deb5
+
+	/// All-sector reference for the selected metric: the average per sector for volume metrics (Amount, Loans), otherwise the metric across all selected sectors (for example the overall women's share or overall median days). Year, region and country filters still apply.
+	measure 'Sector Metric Benchmark' =
+			// Purpose : The dashed 'average' line and the vs-average gaps on the Sectors page.
+			// Logic   : Volume metrics -> mean over sectors with loans;
+			//           ratio metrics  -> the metric with the sector filter lifted to the slicer selection.
+			// Used in : HTML Sector Ranking.
+			VAR _m = [Selected Sector Metric]
+			VAR _sectors =
+			    CALCULATETABLE(
+			        FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Total Loans])),
+			        ALLSELECTED('Loans'[sector])
+			    )
+			RETURN
+			    IF(
+			        _m IN {"Amount", "Loans"},
+			        AVERAGEX(_sectors, [Sector Metric Value]),
+			        CALCULATE([Sector Metric Value], ALLSELECTED('Loans'[sector]))
+			    )
+		displayFolder: Sector Metric
+		lineageTag: 818d5f38-52d8-43c2-8336-600711c8499d
+
+	/// Treemap fill for a sector: one of five green shades by where the sector's selected metric sits between the lowest and highest sector (stronger = better: darker in light mode, brighter in dark mode; for days to fund, faster = stronger).
+	measure 'Sector Metric Color' =
+			// Purpose : Let the metric switcher colour the sector -> activity treemap.
+			// Logic   : Sector-level value (activity filter removed), min-max scaled across the
+			//           selected sectors, flipped for lower-is-better, bucketed into 5 shades.
+			//           Shades stay dark enough for the treemap's white labels in both modes.
+			// Used in : Sectors & Activities treemap (dataPoint fill, fx).
+			VAR _v = CALCULATE([Sector Metric Value], REMOVEFILTERS('Loans'[activity]))
+			VAR _all =
+			    CALCULATETABLE(
+			        ADDCOLUMNS(VALUES('Loans'[sector]), "@v", CALCULATE([Sector Metric Value])),
+			        ALLSELECTED('Loans'[sector]),
+			        REMOVEFILTERS('Loans'[activity])
+			    )
+			VAR _lo = MINX(FILTER(_all, NOT ISBLANK([@v])), [@v])
+			VAR _hi = MAXX(FILTER(_all, NOT ISBLANK([@v])), [@v])
+			VAR _t0 = DIVIDE(_v - _lo, _hi - _lo, 0.5)
+			VAR _t = IF([Sector Metric Lower Is Better], 1 - _t0, _t0)
+			VAR _i = MIN(4, INT(_t * 5))
+			RETURN
+			    IF(
+			        [Is Dark Mode],
+			        SWITCH(_i, 0, "#0B453A", 1, "#10594A", 2, "#17735E", 3, "#1E8E72", "#27A886"),
+			        SWITCH(_i, 0, "#7BA69C", 1, "#558F81", 2, "#2E7D6A", 3, "#0F6A55", "#06453A")
+			    )
+		displayFolder: Sector Metric
+		lineageTag: 3dca7451-facb-4e69-82c1-7a7a2f3f0045
+
+	/// Subtitle for the sectors treemap naming the metric that drives the tile colour.
+	measure 'Sector Treemap Subtitle' =
+			// Purpose : Tell the reader what the treemap colour means.
+			// Logic   : Tile size is always amount; colour follows the metric switcher. The strong end of the
+			//           scale is darker in light mode and brighter in dark mode (see Sector Metric Color).
+			// Used in : Sectors & Activities treemap subtitle.
+			VAR _strong = IF([Is Dark Mode], "brighter", "darker")
+			VAR _label =
+			    SWITCH(
+			        [Selected Sector Metric],
+			        "Amount", "loan amount (" & _strong & " = more)",
+			        "Loans", "number of loans (" & _strong & " = more)",
+			        "Avg loan", "average loan (" & _strong & " = larger)",
+			        "Women", "women's share (" & _strong & " = higher)",
+			        "Days", "funding speed (" & _strong & " = faster)",
+			        "Funded", "funded share (" & _strong & " = higher)"
+			    )
+			RETURN
+			    "Size = loan amount · colour = " & _label & ". Click a sector to filter the page."
+		displayFolder: Sector Metric
+		lineageTag: 3452accb-83da-46e8-baf5-0b909597dd8c
+
+	/// Sector ranking (580x540) for the metric chosen in the switcher: a vs-average lollipop per sector (dot = sector value, dashed line = all-sector benchmark, stem and chip green when better than average, coral when worse), ranked best first. For days to fund, lower is better.
+	measure 'HTML Sector Vs Average' =
+			// Purpose : Make the metric switcher tell a story: which sectors beat the average, and by how much.
+			// Logic   : Per-sector value vs [Sector Metric Benchmark]. x-scale starts at 0 for volume metrics
+			//           and at min - 8% padding for ratio / speed metrics. The stem grows from the dashed
+			//           benchmark line to the sector's dot. Good = above average, or below for days to fund.
+			// Used in : Sectors & Activities page.
+			VAR _m = [Selected Sector Metric]
+			VAR _low = [Sector Metric Lower Is Better]
+			VAR _bench = [Sector Metric Benchmark]
+			VAR _label =
+			    SWITCH(_m,
+			        "Amount", "Loan amount",
+			        "Loans", "Number of loans",
+			        "Avg loan", "Average loan size",
+			        "Women", "Women's share of borrowers",
+			        "Days", "Median days to fund",
+			        "Funded", "Share of requested amount funded")
+			VAR _t =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Sector Metric Value])),
+			        "@v", [Sector Metric Value]
+			    )
+			VAR _t2 =
+			    ADDCOLUMNS(
+			        _t,
+			        "@key", IF(_low, -[@v], [@v]),
+			        "@fmt",
+			            SWITCH(_m,
+			                "Amount", FORMAT([@v] / 1e6, "$#,0.0") & "M",
+			                "Loans", IF([@v] >= 1000, FORMAT([@v] / 1000, "#,0.0") & "K", FORMAT([@v], "#,0")),
+			                "Avg loan", FORMAT([@v], "$#,0"),
+			                "Days", FORMAT([@v], "0.0") & " d",
+			                FORMAT([@v], "0.0%"))
+			    )
+			VAR _r = ADDCOLUMNS(_t2, "@rank", RANKX(_t2, [@key], , DESC, Dense))
+			VAR _n = COUNTROWS(_r)
+			VAR _min = MIN(MINX(_r, [@v]), _bench)
+			VAR _max = MAX(MAXX(_r, [@v]), _bench)
+			VAR _pad = (_max - _min) * 0.08
+			VAR _lo = IF(_m IN {"Amount", "Loans", "Avg loan"}, 0, _min - _pad)
+			VAR _hi = _max + _pad
+			VAR _bp = DIVIDE(_bench - _lo, _hi - _lo) * 100
+			VAR _better = COUNTROWS(FILTER(_r, IF(_low, [@v] < _bench, [@v] > _bench)))
+			VAR _benchFmt =
+			    SWITCH(_m,
+			        "Amount", FORMAT(_bench / 1e6, "$#,0.0") & "M",
+			        "Loans", IF(_bench >= 1000, FORMAT(_bench / 1000, "#,0.0") & "K", FORMAT(_bench, "#,0")),
+			        "Avg loan", FORMAT(_bench, "$#,0"),
+			        "Days", FORMAT(_bench, "0.0") & " d",
+			        FORMAT(_bench, "0.0%"))
+			VAR _benchLabel = IF(_m IN {"Amount", "Loans"}, "Average per sector", "All sectors")
+			VAR _rows =
+			    CONCATENATEX(
+			        _r,
+			        VAR _v = [@v]
+			        VAR _p = DIVIDE(_v - _lo, _hi - _lo) * 100
+			        VAR _good = IF(_low, _v <= _bench, _v >= _bench)
+			        VAR _cls = IF(_good, "g", "b")
+			        VAR _up = _v >= _bench
+			        VAR _dl = 0.12 + [@rank] * 0.045
+			        VAR _delta =
+			            SWITCH(TRUE(),
+			                _m IN {"Women", "Funded"}, FORMAT((_v - _bench) * 100, "+0.0;-0.0;0.0") & " pp",
+			                _m = "Days", FORMAT(_v - _bench, "+0.0;-0.0;0.0") & " d",
+			                FORMAT(DIVIDE(_v, _bench) - 1, "+0%;-0%;0%"))
+			        RETURN
+			            "<div class='rw fu' style='animation-delay:" & FORMAT(_dl, "0.00") & "s'>"
+			                & "<span class='rk'>" & [@rank] & "</span>"
+			                & "<span class='nm'>" & 'Loans'[sector] & "</span>"
+			                & "<div class='trk'><i class='avg' style='left:" & FORMAT(_bp, "0.0") & "%'></i>"
+			                & "<i class='stem " & _cls & "' style='left:" & FORMAT(MIN(_p, _bp), "0.0") & "%;width:" & FORMAT(ABS(_p - _bp), "0.0") & "%;transform-origin:" & IF(_up, "left", "right") & " center;animation-delay:" & FORMAT(_dl + 0.2, "0.00") & "s'></i>"
+			                & "<i class='dot " & _cls & "' style='left:" & FORMAT(_p, "0.0") & "%;animation-delay:" & FORMAT(_dl + 0.75, "0.00") & "s'></i></div>"
+			                & "<span class='val'>" & [@fmt] & "</span>"
+			                & "<span class='chip " & _cls & "'>" & "<i>" & IF(_up, "&#9650;", "&#9660;") & "</i><span>" & _delta & "</span></span></div>",
+			        "",
+			        [@rank], ASC,
+			        'Loans'[sector], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".sr{height:536px;padding:14px 16px 10px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".hd{display:flex;justify-content:space-between;align-items:flex-start;}"
+			        & ".ti{font-size:17px;font-family:'Segoe UI Semibold';font-weight:600;margin-top:3px;}"
+			        & ".ti b{color:var(--accent);font-weight:600;}"
+			        & ".sum{text-align:right;font-size:10.5px;line-height:1.15;color:var(--muted);}"
+			        & ".big{display:block;font-size:24px;font-family:'Segoe UI Semibold';font-weight:600;color:var(--good);}"
+			        & ".big small{font-size:13px;color:var(--muted);}"
+			        & ".lg{display:flex;gap:16px;align-items:center;font-size:10.5px;color:var(--muted);margin:8px 0 4px;padding-bottom:8px;border-bottom:1px solid var(--grid);}"
+			        & ".lg b{color:var(--text);font-weight:600;}"
+			        & ".la{display:inline-block;width:0;height:12px;border-left:1.5px dashed var(--muted);margin-right:6px;vertical-align:middle;}"
+			        & ".ld{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;}"
+			        & ".rows{flex:1;display:flex;flex-direction:column;}"
+			        & ".rw{flex:1;display:grid;grid-template-columns:20px 108px 1fr 62px 58px;column-gap:8px;align-items:center;font-size:11.5px;border-radius:4px;}"
+			        & ".rw:hover{background:var(--card2);}"
+			        & ".rk{color:var(--accent);font-weight:600;text-align:right;}"
+			        & ".nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".trk{position:relative;height:100%;}"
+			        & ".trk:before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--grid);}"
+			        & ".avg{position:absolute;top:0;bottom:0;border-left:1.5px dashed var(--muted);opacity:.7;}"
+			        & ".stem{position:absolute;top:50%;height:3px;margin-top:-1.5px;border-radius:2px;opacity:.55;animation:grow .9s cubic-bezier(.2,.7,.2,1) both;}"
+			        & "@keyframes pop{from{transform:translate(-50%,-50%) scale(0);}to{transform:translate(-50%,-50%) scale(1);}}"
+			        & ".dot{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;box-shadow:0 0 0 2.5px var(--card);transform:translate(-50%,-50%);animation:pop .45s cubic-bezier(.3,1.6,.5,1) both;}"
+			        & ".g{background:var(--good);}.b{background:var(--bad);}"
+			        & ".val{text-align:right;font-family:'Segoe UI Semibold';font-weight:600;white-space:nowrap;}"
+			        & ".chip{justify-self:stretch;display:flex;justify-content:space-between;align-items:center;width:100%;font-size:10px;line-height:14px;padding:1px 6px;border-radius:10px;white-space:nowrap;background:none !important;border:1px solid;font-variant-numeric:tabular-nums;}.chip i{font-style:normal;font-size:8px;}"
+			        & ".chip.g{color:var(--good);}.chip.b{color:var(--bad);}"
+			        & "</style>"
+			        & "<div class='k'><div class='sr card'>"
+			        & "<div class='hd fu d1'><div><div class='eyebrow'>Sector ranking &middot; vs the all-sector average</div>"
+			        & "<div class='ti'>Ranked by: <b>" & _label & "</b></div></div>"
+			        & "<div class='sum'><span class='big'>" & _better & "<small> / " & _n & "</small></span>" & IF(_low, "sectors faster than average", "sectors above average") & "</div></div>"
+			        & "<div class='lg fu d2'><span><i class='la'></i>" & _benchLabel & ": <b>" & _benchFmt & "</b></span>"
+			        & "<span><i class='ld g'></i>better than average</span><span><i class='ld b'></i>worse than average</span>"
+			        & IF(_low, "<span>lower is better</span>", "") & "</div>"
+			        & "<div class='rows'>" & _rows & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: 62335bf3-d19e-4797-b2ef-c27a362fb55e
+
+	/// Dot plot (576x292): women's share of borrowers per sector as one dot on a thin line, with a dashed line at the overall share. Dots at or above the overall share are filled, those below are hollow. Sorted by share.
+	measure 'HTML Women By Sector' =
+			// Purpose : Show which sectors reach more or fewer women, with as little ink as possible.
+			// Logic   : Women's share of borrowers with known gender per sector on a shared scale
+			//           (lower bound 50%, or lower if a sector falls under it; upper bound 100%).
+			//           Dashed line = the share across the selected sectors. Sorted high to low.
+			// Used in : Borrowers & Gender page.
+			VAR _overall = CALCULATE([Female Borrower %], ALLSELECTED('Loans'[sector]))
+			VAR _t =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Female Borrower %])),
+			        "@w", [Female Borrower %]
+			    )
+			VAR _r = ADDCOLUMNS(_t, "@rank", RANKX(_t, [@w], , DESC, Dense))
+			VAR _lo = MIN(0.5, FLOOR(MINX(_r, [@w]), 0.1))
+			VAR _pos = (DIVIDE(_overall - _lo, 1 - _lo)) * 100
+			VAR _rows =
+			    CONCATENATEX(
+			        _r,
+			        "<div class='rw fu' style='animation-delay:" & FORMAT(0.08 + [@rank] * 0.03, "0.00") & "s'>"
+			            & "<span class='nm'>" & 'Loans'[sector] & "</span>"
+			            & "<div class='tk'><i class='ov' style='left:" & FORMAT(_pos, "0.0") & "%'></i>"
+			            & "<i class='dt" & IF([@w] >= _overall, "", " lo") & "' style='left:" & FORMAT(DIVIDE([@w] - _lo, 1 - _lo) * 100, "0.0") & "%;animation-delay:" & FORMAT(0.3 + [@rank] * 0.04, "0.00") & "s'></i></div>"
+			            & "<span class='v'>" & FORMAT([@w], "0%") & "</span></div>",
+			        "",
+			        [@w], DESC,
+			        'Loans'[sector], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".ws{height:288px;padding:12px 14px 12px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".st i{display:inline-block;width:0;height:10px;border-left:1.5px dashed var(--muted);margin:0 4px 0 2px;vertical-align:-1px;}"
+			        & ".st b{color:var(--text);font-weight:600;}"
+			        & ".rows{flex:1;display:flex;flex-direction:column;margin-top:8px;}"
+			        & ".rw{flex:1;display:grid;grid-template-columns:96px 1fr 32px;column-gap:10px;align-items:center;font-size:10.5px;}"
+			        & ".nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".tk{position:relative;height:100%;}"
+			        & ".tk:before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--grid);}"
+			        & ".ov{position:absolute;top:0;bottom:0;border-left:1.5px dashed var(--muted);opacity:.6;}"
+			        & "@keyframes dpop{from{transform:translate(-50%,-50%) scale(0);}to{transform:translate(-50%,-50%) scale(1);}}"
+			        & ".dt{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:var(--p);border:2px solid var(--p);transform:translate(-50%,-50%);animation:dpop .45s cubic-bezier(.3,1.6,.5,1) both;}"
+			        & ".dt.lo{background:var(--card);}"
+			        & ".v{text-align:right;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & "</style>"
+			        & "<div class='k'><div class='ws card'>"
+			        & "<div class='fu d1'><div class='ti'>Women's share of borrowers, by sector</div>"
+			        & "<div class='st'>Borrowers with known gender <i></i>overall <b>" & FORMAT(_overall, "0.0%") & "</b></div></div>"
+			        & "<div class='rows'>" & _rows & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: 6d53837a-aaa0-4336-942b-1072b4e2c317
+
+	/// Borrower make-up (588x300): a 10x10 waffle of loans by borrower group type (1 square = 1% of loans) next to a table of how each group fares (share, average loan, median days to fund, funded %) and a women-vs-men funding-speed callout.
+	measure 'HTML Borrower Makeup' =
+			// Purpose : Who borrows (individuals vs groups, women vs men) and how each group fares.
+			// Logic   : Loans per borrower_group_type; 100 waffle squares allocated by cumulative rounding
+			//           (start/end = ROUND of the running share x 100) so they always sum to 100.
+			//           Colours: women greens, mixed pistachio, men greys (light/dark variants).
+			// Used in : Borrowers & Gender page.
+			VAR _dark = [Is Dark Mode]
+			VAR _groups =
+			    DATATABLE(
+			        "G", STRING, "Lbl", STRING, "Ord", INTEGER, "CL", STRING, "CD", STRING,
+			        {
+			            {"Individual - Female", "Individual women", 1, "#03624C", "#2CC295"},
+			            {"Group - All Female", "Women's groups", 2, "#2CC295", "#00DF81"},
+			            {"Group - Mixed", "Mixed groups", 3, "#AACBC4", "#AACBC4"},
+			            {"Individual - Male", "Individual men", 4, "#707D7D", "#707D7D"},
+			            {"Group - All Male", "Men's groups", 5, "#3E4A4A", "#4A5656"},
+			            {"Unknown", "Unknown", 6, "#DCE7E4", "#0B453A"}
+			        }
+			    )
+			VAR _g =
+			    ADDCOLUMNS(
+			        _groups,
+			        "@n", VAR _k = [G] RETURN CALCULATE([Total Loans], 'Loans'[borrower_group_type] = _k),
+			        "@avg", VAR _k = [G] RETURN CALCULATE([Average Loan Amount], 'Loans'[borrower_group_type] = _k),
+			        "@days", VAR _k = [G] RETURN CALCULATE([Median Days To Fund], 'Loans'[borrower_group_type] = _k),
+			        "@fund", VAR _k = [G] RETURN CALCULATE([Funded %], 'Loans'[borrower_group_type] = _k),
+			        "@col", IF(_dark, [CD], [CL])
+			    )
+			VAR _tot = SUMX(_g, [@n])
+			VAR _c =
+			    ADDCOLUMNS(
+			        _g,
+			        "@share", DIVIDE([@n], _tot),
+			        "@end", VAR _o = [Ord] RETURN ROUND(DIVIDE(SUMX(FILTER(_g, [Ord] <= _o), [@n]), _tot) * 100, 0),
+			        "@start", VAR _o = [Ord] RETURN ROUND(DIVIDE(SUMX(FILTER(_g, [Ord] < _o), [@n]), _tot) * 100, 0)
+			    )
+			VAR _cells =
+			    CONCATENATEX(
+			        GENERATESERIES(0, 99, 1),
+			        VAR _i = [Value]
+			        VAR _col = MAXX(FILTER(_c, _i >= [@start] && _i < [@end]), [@col])
+			        RETURN
+			            "<i style='background:" & IF(ISBLANK(_col), "var(--track)", _col) & ";animation-delay:" & FORMAT(0.1 + (MOD(_i, 10) + INT(_i / 10)) * 0.035, "0.00") & "s'></i>",
+			        "",
+			        [Value], ASC
+			    )
+			VAR _rows =
+			    CONCATENATEX(
+			        FILTER(_c, [@n] > 0),
+			        "<tr><td class='gl'><i class='sw' style='background:" & [@col] & "'></i>" & [Lbl] & "</td>"
+			            & "<td class='n b'>" & IF([@share] < 0.005, "&lt;1%", FORMAT([@share], "0%")) & "</td>"
+			            & "<td class='n'>" & FORMAT([@avg], "$#,0") & "</td>"
+			            & "<td class='n'>" & FORMAT([@days], "0.0") & "</td>"
+			            & "<td class='n'>" & FORMAT([@fund], "0%") & "</td></tr>",
+			        "",
+			        [Ord], ASC
+			    )
+			VAR _dF = MAXX(FILTER(_c, [Ord] = 1), [@days])
+			VAR _dM = MAXX(FILTER(_c, [Ord] = 4), [@days])
+			VAR _ins =
+			    IF(
+			        NOT ISBLANK(_dF) && NOT ISBLANK(_dM),
+			        "Individual women are funded in <b>" & FORMAT(_dF, "0.0") & " days</b> (median), individual men in <b>" & FORMAT(_dM, "0.0") & "</b>.",
+			        ""
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".bm{height:296px;padding:12px 14px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".bd{flex:1;display:flex;gap:18px;align-items:center;}"
+			        & ".wf{display:grid;grid-template-columns:repeat(10,17px);grid-auto-rows:17px;gap:3px;flex:none;}"
+			        & "@keyframes sq{from{transform:scale(0);opacity:0;}to{transform:scale(1);opacity:1;}}"
+			        & ".wf i{display:block;border-radius:3px;animation:sq .35s cubic-bezier(.3,1.4,.5,1) both;}"
+			        & ".rt{flex:1;min-width:0;}"
+			        & "table{width:100%;border-collapse:collapse;font-size:11px;}"
+			        & "th{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:0 4px 5px;border-bottom:1px solid var(--grid);}"
+			        & "th.l{text-align:left;}"
+			        & "td{padding:4px 4px;border-bottom:1px solid var(--grid);white-space:nowrap;}"
+			        & "tr:last-child td{border-bottom:none;}"
+			        & ".gl{max-width:120px;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px;}"
+			        & ".n{text-align:right;}.b{font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".ins{margin-top:8px;font-size:11px;color:var(--muted);line-height:1.35;}"
+			        & ".ins b{color:var(--accent);font-weight:600;}"
+			        & "</style>"
+			        & "<div class='k'><div class='bm card'>"
+			        & "<div class='fu d1'><div class='ti'>Borrower make-up</div>"
+			        & "<div class='st'>Loans by borrower group type &middot; 1 square = 1% of loans</div></div>"
+			        & "<div class='bd'><div class='wf'>" & _cells & "</div>"
+			        & "<div class='rt fu d3'><table><tr><th class='l'>Group</th><th>Loans</th><th>Avg loan</th><th>Days</th><th>Funded</th></tr>"
+			        & _rows & "</table><div class='ins'>" & _ins & "</div></div></div></div></div>"
+		displayFolder: HTML
+		lineageTag: 3a05ab71-2587-45c9-802c-6c0bd923316d
+
+	/// Ring grid (288x292): women's share of borrowers per world region as a 2x3 grid of animated rings with the share in the centre, sorted by share. Loans without a region ('Not classified') are shown as a footnote.
+	measure 'HTML Women By Region' =
+			// Purpose : A calm, glanceable view of the regional gender split.
+			// Logic   : One ring per classified world region (arc = women's share), sorted high to low;
+			//           'Not classified' is excluded from the grid and reported in a footnote.
+			// Used in : Borrowers & Gender page.
+			VAR _C = 2 * PI() * 21
+			VAR _t =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Countries'[World Region]), NOT ISBLANK([Female Borrower %]) && 'Countries'[World Region] <> "Not classified"),
+			        "@w", [Female Borrower %]
+			    )
+			VAR _r = ADDCOLUMNS(_t, "@rank", RANKX(_t, [@w], , DESC, Dense))
+			VAR _nc = CALCULATE([Female Borrower %], 'Countries'[World Region] = "Not classified")
+			VAR _cells =
+			    CONCATENATEX(
+			        _r,
+			        "<div class='cl fu' style='animation-delay:" & FORMAT(0.08 + [@rank] * 0.06, "0.00") & "s'>"
+			            & "<div class='rg'><svg viewBox='0 0 52 52' width='52' height='52'>"
+			            & "<circle cx='26' cy='26' r='21' fill='none' stroke='var(--border)' stroke-width='6'/>"
+			            & "<circle cx='26' cy='26' r='21' fill='none' stroke='var(--p)' stroke-width='6' stroke-linecap='round' transform='rotate(-90 26 26)'"
+			            & " stroke-dasharray='" & FORMAT(_C, "0.00") & "' stroke-dashoffset='" & FORMAT(_C * (1 - [@w]), "0.00") & "'"
+			            & " style='--c:" & FORMAT(_C, "0.00") & ";animation:ring 1.2s cubic-bezier(.2,.7,.2,1) both;animation-delay:" & FORMAT(0.3 + [@rank] * 0.08, "0.00") & "s'/></svg>"
+			            & "<b>" & FORMAT([@w], "0%") & "</b></div>"
+			            & "<div class='nm'>" & SUBSTITUTE(SUBSTITUTE('Countries'[World Region], " and the ", " & "), " and ", " & ") & "</div></div>",
+			        "",
+			        [@w], DESC,
+			        'Countries'[World Region], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".wr{height:288px;padding:12px 14px 10px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".gr{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;column-gap:10px;margin-top:6px;}"
+			        & ".cl{display:flex;align-items:center;gap:8px;min-width:0;}"
+			        & ".rg{position:relative;width:52px;height:52px;flex:none;}"
+			        & ".rg b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI Semibold';font-weight:600;font-size:12px;}"
+			        & ".nm{font-size:10.5px;line-height:1.25;}"
+			        & ".fn{font-size:10px;color:var(--muted);}"
+			        & "</style>"
+			        & "<div class='k'><div class='wr card'>"
+			        & "<div class='fu d1'><div class='ti'>By world region</div>"
+			        & "<div class='st'>Women's share of borrowers</div></div>"
+			        & "<div class='gr'>" & _cells & "</div>"
+			        & IF(NOT ISBLANK(_nc), "<div class='fn fu d8'>Loans without a region: " & FORMAT(_nc, "0%") & " women</div>", "")
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: 5da859a3-20bc-4770-a542-71e9468c22cf
+
+	/// Loan theme mix (524x236): a 100% strip of the loan amount by theme (leading theme, next 5 themes, all other themes, hatched = no theme recorded) and a ranked list of the next 5 themes whose swatches match the strip. Replaces the top-10 theme bar chart where the leading theme (General, 46%) flattened every other bar.
+	measure 'HTML Theme Mix' =
+			// Purpose : Show how concentrated lending is in one theme and what comes next, without one
+			//           giant bar flattening the rest.
+			// Logic   : Leader = theme with the largest amount in context; strip widths = share of the total
+			//           amount (incl. loans without a theme, shown hatched); list bars are scaled to the
+			//           largest of the next 5 themes. Colours step from the accent to pale greens.
+			// Used in : Partners & Themes page.
+			VAR _dark = [Is Dark Mode]
+			VAR _tot = [Total Loan Amount]
+			VAR _t =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Loans'[loan_theme_type]), NOT ISBLANK('Loans'[loan_theme_type]) && NOT ISBLANK([Total Loan Amount])),
+			        "@a", [Total Loan Amount]
+			    )
+			VAR _lead = TOPN(1, _t, [@a], DESC, 'Loans'[loan_theme_type], ASC)
+			VAR _leadName = MAXX(_lead, 'Loans'[loan_theme_type])
+			VAR _leadAmt = MAXX(_lead, [@a])
+			VAR _rest = FILTER(_t, 'Loans'[loan_theme_type] <> _leadName)
+			VAR _top = TOPN(5, _rest, [@a], DESC, 'Loans'[loan_theme_type], ASC)
+			VAR _r = ADDCOLUMNS(_top, "@rank", RANKX(_top, [@a], , DESC, Skip))
+			VAR _max = MAXX(_r, [@a])
+			VAR _otherAmt = SUMX(_rest, [@a]) - SUMX(_r, [@a])
+			VAR _otherN = COUNTROWS(_rest) - COUNTROWS(_r)
+			VAR _blank = CALCULATE([Total Loan Amount], ISBLANK('Loans'[loan_theme_type]))
+			VAR _cLead = IF(_dark, "#00DF81", "#03624C")
+			VAR _cOther = IF(_dark, "#0B453A", "#DCE7E4")
+			VAR _pal =
+			    ADDCOLUMNS(
+			        _r,
+			        "@col",
+			            IF(
+			                _dark,
+			                SWITCH([@rank], 1, "#1FA37F", 2, "#2CC295", 3, "#5CCBA8", 4, "#8FD9C0", "#AACBC4"),
+			                SWITCH([@rank], 1, "#17876D", 2, "#2E9E82", 3, "#4FB597", 4, "#7CC7B0", "#A6D8C9")
+			            )
+			    )
+			VAR _seg =
+			    "<i style='width:" & FORMAT(DIVIDE(_leadAmt, _tot) * 100, "0.00") & "%;background:" & _cLead & "'><span>" & _leadName & " " & FORMAT(DIVIDE(_leadAmt, _tot), "0%") & "</span></i>"
+			        & CONCATENATEX(_pal, "<i style='width:" & FORMAT(DIVIDE([@a], _tot) * 100, "0.00") & "%;background:" & [@col] & "'></i>", "", [@rank], ASC)
+			        & "<i style='width:" & FORMAT(DIVIDE(_otherAmt, _tot) * 100, "0.00") & "%;background:" & _cOther & "'></i>"
+			        & IF(_blank > 0, "<i class='hx' style='width:" & FORMAT(DIVIDE(_blank, _tot) * 100, "0.00") & "%'></i>", "")
+			VAR _rows =
+			    CONCATENATEX(
+			        _pal,
+			        "<div class='rw fu' style='animation-delay:" & FORMAT(0.2 + [@rank] * 0.06, "0.00") & "s'>"
+			            & "<span class='nm'><i class='sw' style='background:" & [@col] & "'></i>" & 'Loans'[loan_theme_type] & "</span>"
+			            & "<span class='tr'><i class='bar' style='width:" & FORMAT(DIVIDE([@a], _max) * 100, "0") & "%;background:" & [@col] & ";animation-delay:" & FORMAT(0.35 + [@rank] * 0.06, "0.00") & "s'></i></span>"
+			            & "<span class='n b'>" & FORMAT([@a] / 1e6, "$#,0.0") & "M</span>"
+			            & "<span class='n m'>" & FORMAT(DIVIDE([@a], _tot), "0.0%") & "</span></div>",
+			        "",
+			        [@rank], ASC,
+			        'Loans'[loan_theme_type], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".tm{height:232px;padding:12px 14px 10px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".st b{color:var(--text);font-weight:600;}"
+			        & ".sp{display:flex;height:22px;border-radius:6px;overflow:hidden;margin:10px 0 8px;gap:2px;transform-origin:left center;animation:grow 1s cubic-bezier(.2,.7,.2,1) both;}"
+			        & ".sp i{display:block;height:100%;flex:none;position:relative;}"
+			        & ".sp span{position:absolute;left:8px;top:0;line-height:22px;font-size:10.5px;font-family:'Segoe UI Semibold';font-weight:600;color:#FFFFFF;white-space:nowrap;}"
+			        & ".hx{background:repeating-linear-gradient(45deg,var(--border) 0 3px,transparent 3px 6px);}"
+			        & ".rows{flex:1;display:flex;flex-direction:column;justify-content:space-between;}"
+			        & ".rw{display:grid;grid-template-columns:170px 1fr 54px 40px;column-gap:10px;align-items:center;font-size:11px;}"
+			        & ".nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px;}"
+			        & ".tr{height:7px;border-radius:4px;background:var(--track);overflow:hidden;}"
+			        & ".tr i{display:block;height:100%;border-radius:4px;}"
+			        & ".n{text-align:right;white-space:nowrap;}.b{font-family:'Segoe UI Semibold';font-weight:600;}.m{color:var(--muted);}"
+			        & ".fn{margin-top:6px;font-size:10px;color:var(--muted);display:flex;gap:14px;}"
+			        & ".fn i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px;}"
+			        & "</style>"
+			        & "<div class='k'><div class='tm card'>"
+			        & "<div class='fu d1'><div class='ti'>Loan theme mix</div>"
+			        & "<div class='st'><b>" & _leadName & "</b> takes " & FORMAT(DIVIDE(_leadAmt, _tot), "0%") & " of the amount. The next 5 themes:</div></div>"
+			        & "<div class='sp'>" & _seg & "</div>"
+			        & "<div class='rows'>" & _rows & "</div>"
+			        & "<div class='fn fu d8'><span><i style='background:" & _cOther & "'></i>" & FORMAT(_otherN, "#,0") & " other themes " & FORMAT(DIVIDE(_otherAmt, _tot), "0%") & "</span>"
+			        & IF(_blank > 0, "<span><i class='hx'></i>No theme recorded " & FORMAT(DIVIDE(_blank, _tot), "0%") & "</span>", "") & "</div>"
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: f1e1d35b-9b8b-4760-a27e-e947d5d95dbb
+
+	/// Rural reach by sector (524x232): every Themes By Region sector as a compact bar of its rural share of borrowers, primary colour at or above the overall share and muted below, a dashed overall line, and a 'small sample' tag for sectors under $100K.
+	measure 'HTML Rural By Sector' =
+			// Purpose : Which kinds of lending reach rural borrowers, all categories visible without scrolling.
+			// Logic   : [Rural Borrower %] per 'Themes By Region'[sector] (amount-weighted, partner-reported);
+			//           overall = the share across the selected sectors; sectors with < $100K of theme amount
+			//           are tagged as a small sample (e.g. Health, one region).
+			// Used in : Partners & Themes page.
+			VAR _overall = CALCULATE([Rural Borrower %], ALLSELECTED('Themes By Region'[sector]))
+			VAR _t =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Themes By Region'[sector]), NOT ISBLANK([Rural Borrower %])),
+			        "@r", [Rural Borrower %],
+			        "@a", CALCULATE(SUM('Themes By Region'[amount]))
+			    )
+			VAR _r = ADDCOLUMNS(_t, "@rank", RANKX(_t, [@r], , DESC, Skip))
+			VAR _rows =
+			    CONCATENATEX(
+			        _r,
+			        "<div class='rw fu' style='animation-delay:" & FORMAT(0.08 + [@rank] * 0.035, "0.00") & "s'>"
+			            & "<span class='nm'>" & 'Themes By Region'[sector] & IF([@a] < 100000, "<em>small sample</em>", "") & "</span>"
+			            & "<span class='tr'><i class='bar" & IF([@r] >= _overall, " hi", "") & "' style='width:" & FORMAT([@r] * 100, "0.0") & "%;animation-delay:" & FORMAT(0.2 + [@rank] * 0.035, "0.00") & "s'></i>"
+			            & "<i class='ov' style='left:" & FORMAT(_overall * 100, "0.0") & "%'></i></span>"
+			            & "<span class='v'>" & FORMAT([@r], "0%") & "</span></div>",
+			        "",
+			        [@r], DESC,
+			        'Themes By Region'[sector], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".ru{height:228px;padding:12px 14px 10px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".st i{display:inline-block;width:0;height:10px;border-left:1.5px dashed var(--muted);margin:0 4px 0 2px;vertical-align:-1px;}"
+			        & ".st b{color:var(--text);font-weight:600;}"
+			        & ".rows{flex:1;display:flex;flex-direction:column;margin-top:6px;}"
+			        & ".rw{flex:1;display:grid;grid-template-columns:200px 1fr 34px;column-gap:10px;align-items:center;font-size:10.5px;}"
+			        & ".nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".nm em{font-style:normal;font-size:9px;color:var(--muted);margin-left:6px;}"
+			        & ".tr{position:relative;height:8px;border-radius:4px;background:var(--track);}"
+			        & ".tr .bar{display:block;height:100%;border-radius:4px;background:var(--border);}"
+			        & ".tr .bar.hi{background:var(--p);}"
+			        & ".ov{position:absolute;top:-3px;bottom:-3px;border-left:1.5px dashed var(--muted);}"
+			        & ".v{text-align:right;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & "</style>"
+			        & "<div class='k'><div class='ru card'>"
+			        & "<div class='fu d1'><div class='ti'>How rural is each sector?</div>"
+			        & "<div class='st'>Rural share of borrowers, partner-reported <i></i>overall <b>" & FORMAT(_overall, "0.0%") & "</b></div></div>"
+			        & "<div class='rows'>" & _rows & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: 4dd49818-8852-4490-ae79-9891b8303873
+
+	/// Overview monthly trend (760x236): SVG area/line chart of amount requested vs funded by posting month, with the funding gap shaded in the Bad colour. Lines draw themselves on load.
+	measure 'HTML Monthly Trend' =
+			// Purpose : Monthly lending with the funding gap made visible.
+			// Logic   : One point per posting month with loans; x = month index, y = amount / (max x 1.1).
+			//           Gap = polygon between the requested and funded lines. Paths use pathLength=1 so the
+			//           stroke-dash 'draw' animation works regardless of length.
+			// Used in : Overview page.
+			VAR _W = 732
+			VAR _H = 164
+			VAR _PL = 44
+			VAR _PR = 12
+			VAR _PT = 8
+			VAR _PH = 132
+			VAR _PW = _W - _PL - _PR
+			VAR _base = _PT + _PH
+			VAR _m =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Date'[Month Start]), NOT ISBLANK([Total Loan Amount])),
+			        "@req", [Total Loan Amount],
+			        "@fun", [Total Funded Amount]
+			    )
+			VAR _n = COUNTROWS(_m)
+			VAR _mi = ADDCOLUMNS(_m, "@i", RANKX(_m, 'Date'[Month Start], , ASC, Dense) - 1)
+			VAR _max = MAXX(_mi, [@req]) * 1.1
+			VAR _step = DIVIDE(_PW, MAX(_n - 1, 1))
+			VAR _pts =
+			    ADDCOLUMNS(
+			        _mi,
+			        "@x", _PL + [@i] * _step,
+			        "@yr", _base - DIVIDE([@req], _max) * _PH,
+			        "@yf", _base - DIVIDE([@fun], _max) * _PH
+			    )
+			VAR _x0 = MINX(_pts, [@x])
+			VAR _xn = MAXX(_pts, [@x])
+			VAR _req = CONCATENATEX(_pts, FORMAT([@x], "0.0") & "," & FORMAT([@yr], "0.0"), " L", [@i], ASC)
+			VAR _fun = CONCATENATEX(_pts, FORMAT([@x], "0.0") & "," & FORMAT([@yf], "0.0"), " L", [@i], ASC)
+			VAR _funRev = CONCATENATEX(_pts, FORMAT([@x], "0.0") & "," & FORMAT([@yf], "0.0"), " L", [@i], DESC)
+			VAR _last = TOPN(1, _pts, [@i], DESC)
+			VAR _grid =
+			    CONCATENATEX(
+			        GENERATESERIES(0, 2, 1),
+			        VAR _v = [Value] * _max / 2.2
+			        VAR _y = _base - DIVIDE(_v, _max) * _PH
+			        RETURN
+			            "<line class='gl' x1='" & _PL & "' x2='" & (_W - _PR) & "' y1='" & FORMAT(_y, "0.0") & "' y2='" & FORMAT(_y, "0.0") & "'/>"
+			                & "<text class='yl' x='" & (_PL - 6) & "' y='" & FORMAT(_y + 3, "0.0") & "' text-anchor='end'>" & FORMAT(_v / 1e6, "$#,0") & "M</text>",
+			        ""
+			    )
+			VAR _years =
+			    CONCATENATEX(
+			        FILTER(_pts, MONTH('Date'[Month Start]) = 1 || [@i] = 0),
+			        "<line class='tk' x1='" & FORMAT([@x], "0.0") & "' x2='" & FORMAT([@x], "0.0") & "' y1='" & _base & "' y2='" & (_base + 4) & "'/>"
+			            & "<text class='xl' x='" & FORMAT([@x], "0.0") & "' y='" & (_base + 16) & "'>" & FORMAT('Date'[Month Start], "mmm yyyy") & "</text>",
+			        ""
+			    )
+			VAR _dots =
+			    CONCATENATEX(
+			        _last,
+			        "<circle class='dot df' cx='" & FORMAT([@x], "0.0") & "' cy='" & FORMAT([@yf], "0.0") & "' r='3.5'/>"
+			            & "<circle class='dot dr2' cx='" & FORMAT([@x], "0.0") & "' cy='" & FORMAT([@yr], "0.0") & "' r='3'/>",
+			        ""
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".mt{height:232px;padding:12px 14px 8px;overflow:hidden;}"
+			        & ".hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".lg{display:flex;gap:12px;font-size:10.5px;color:var(--muted);white-space:nowrap;padding-top:3px;}"
+			        & ".lg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px;}"
+			        & ".lg .gpi{height:9px;vertical-align:-1px;background:var(--bad);opacity:.35;}"
+			        & "svg{display:block;margin-top:6px;overflow:visible;}"
+			        & ".gl{stroke:var(--grid);stroke-width:1;}"
+			        & ".tk{stroke:var(--border);stroke-width:1;}"
+			        & ".yl,.xl{fill:var(--muted);font-size:10px;font-family:'Segoe UI';}"
+			        & ".xl{text-anchor:start;}"
+			        & "@keyframes draw{to{stroke-dashoffset:0;}}"
+			        & "@keyframes fin{to{opacity:1;}}"
+			        & ".ln{fill:none;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s cubic-bezier(.4,0,.2,1) .2s forwards;}"
+			        & ".lr{stroke:var(--muted);stroke-width:1.6;}"
+			        & ".lf{stroke:var(--p);stroke-width:2.4;}"
+			        & ".ar{fill:var(--p);fill-opacity:.12;opacity:0;animation:fin .8s ease 1.2s forwards;}"
+			        & ".gp{fill:var(--bad);fill-opacity:.25;opacity:0;animation:fin .8s ease 1.4s forwards;}"
+			        & ".dot{opacity:0;animation:fin .4s ease 1.8s forwards;}"
+			        & ".df{fill:var(--p);stroke:var(--card);stroke-width:2;}"
+			        & ".dr2{fill:var(--muted);stroke:var(--card);stroke-width:2;}"
+			        & "</style>"
+			        & "<div class='k'><div class='mt card'>"
+			        & "<div class='hd fu d1'><div><div class='ti'>Monthly lending: requested vs funded</div>"
+			        & "<div class='st'>Loan amount by posting month (USD). Data ends 26 Jul 2017, so the last month is partial.</div></div>"
+			        & "<div class='lg'><span><i style='background:var(--muted)'></i>Requested</span><span><i style='background:var(--p)'></i>Funded</span><span><i class='gpi'></i>Gap</span></div></div>"
+			        & "<svg viewBox='0 0 " & _W & " " & _H & "' width='" & _W & "' height='" & _H & "'>"
+			        & _grid & _years
+			        & "<path class='ar' d='M" & FORMAT(_x0, "0.0") & "," & _base & " L" & _fun & " L" & FORMAT(_xn, "0.0") & "," & _base & " Z'/>"
+			        & "<path class='gp' d='M" & _req & " L" & _funRev & " Z'/>"
+			        & "<path class='ln lr' pathLength='1' d='M" & _req & "'/>"
+			        & "<path class='ln lf' pathLength='1' d='M" & _fun & "'/>"
+			        & _dots & "</svg></div></div>"
+		displayFolder: HTML
+		lineageTag: 14ac29fe-fcce-4d04-822e-94f0c300d6dc
+
+	/// Country Profile monthly trend (784x292): SVG area/line chart of amount requested vs funded by posting month for the drilled-through country, gap shaded, animated.
+	measure 'HTML Country Trend' =
+			// Purpose : Monthly lending for one country (drill-through), gap made visible.
+			// Logic   : Same construction as HTML Monthly Trend, sized for the Country Profile page.
+			// Used in : Country Profile page.
+			VAR _W = 756
+			VAR _H = 222
+			VAR _PL = 44
+			VAR _PR = 12
+			VAR _PT = 8
+			VAR _PH = 190
+			VAR _PW = _W - _PL - _PR
+			VAR _base = _PT + _PH
+			VAR _m =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Date'[Month Start]), NOT ISBLANK([Total Loan Amount])),
+			        "@req", [Total Loan Amount],
+			        "@fun", [Total Funded Amount]
+			    )
+			VAR _n = COUNTROWS(_m)
+			VAR _mi = ADDCOLUMNS(_m, "@i", RANKX(_m, 'Date'[Month Start], , ASC, Dense) - 1)
+			VAR _max = MAXX(_mi, [@req]) * 1.1
+			VAR _step = DIVIDE(_PW, MAX(_n - 1, 1))
+			VAR _pts =
+			    ADDCOLUMNS(
+			        _mi,
+			        "@x", _PL + [@i] * _step,
+			        "@yr", _base - DIVIDE([@req], _max) * _PH,
+			        "@yf", _base - DIVIDE([@fun], _max) * _PH
+			    )
+			VAR _x0 = MINX(_pts, [@x])
+			VAR _xn = MAXX(_pts, [@x])
+			VAR _req = CONCATENATEX(_pts, FORMAT([@x], "0.0") & "," & FORMAT([@yr], "0.0"), " L", [@i], ASC)
+			VAR _fun = CONCATENATEX(_pts, FORMAT([@x], "0.0") & "," & FORMAT([@yf], "0.0"), " L", [@i], ASC)
+			VAR _funRev = CONCATENATEX(_pts, FORMAT([@x], "0.0") & "," & FORMAT([@yf], "0.0"), " L", [@i], DESC)
+			VAR _last = TOPN(1, _pts, [@i], DESC)
+			VAR _unit = IF(_max >= 3e6, 1e6, 1e3)
+			VAR _suf = IF(_max >= 3e6, "M", "K")
+			VAR _grid =
+			    CONCATENATEX(
+			        GENERATESERIES(0, 2, 1),
+			        VAR _v = [Value] * _max / 2.2
+			        VAR _y = _base - DIVIDE(_v, _max) * _PH
+			        RETURN
+			            "<line class='gl' x1='" & _PL & "' x2='" & (_W - _PR) & "' y1='" & FORMAT(_y, "0.0") & "' y2='" & FORMAT(_y, "0.0") & "'/>"
+			                & "<text class='yl' x='" & (_PL - 6) & "' y='" & FORMAT(_y + 3, "0.0") & "' text-anchor='end'>" & FORMAT(_v / _unit, "$#,0") & _suf & "</text>",
+			        ""
+			    )
+			VAR _years =
+			    CONCATENATEX(
+			        FILTER(_pts, MONTH('Date'[Month Start]) = 1 || [@i] = 0),
+			        "<line class='tk' x1='" & FORMAT([@x], "0.0") & "' x2='" & FORMAT([@x], "0.0") & "' y1='" & _base & "' y2='" & (_base + 4) & "'/>"
+			            & "<text class='xl' x='" & FORMAT([@x], "0.0") & "' y='" & (_base + 16) & "'>" & FORMAT('Date'[Month Start], "mmm yyyy") & "</text>",
+			        ""
+			    )
+			VAR _dots =
+			    CONCATENATEX(
+			        _last,
+			        "<circle class='dot df' cx='" & FORMAT([@x], "0.0") & "' cy='" & FORMAT([@yf], "0.0") & "' r='3.5'/>"
+			            & "<circle class='dot dr2' cx='" & FORMAT([@x], "0.0") & "' cy='" & FORMAT([@yr], "0.0") & "' r='3'/>",
+			        ""
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".mt{height:288px;padding:12px 14px 8px;overflow:hidden;}"
+			        & ".hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".lg{display:flex;gap:12px;font-size:10.5px;color:var(--muted);white-space:nowrap;padding-top:3px;}"
+			        & ".lg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:3px;}"
+			        & ".lg .gpi{height:9px;vertical-align:-1px;background:var(--bad);opacity:.35;}"
+			        & "svg{display:block;margin-top:6px;overflow:visible;}"
+			        & ".gl{stroke:var(--grid);stroke-width:1;}"
+			        & ".tk{stroke:var(--border);stroke-width:1;}"
+			        & ".yl,.xl{fill:var(--muted);font-size:10px;font-family:'Segoe UI';}"
+			        & "@keyframes draw{to{stroke-dashoffset:0;}}"
+			        & "@keyframes fin{to{opacity:1;}}"
+			        & ".ln{fill:none;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s cubic-bezier(.4,0,.2,1) .2s forwards;}"
+			        & ".lr{stroke:var(--muted);stroke-width:1.6;}"
+			        & ".lf{stroke:var(--p);stroke-width:2.4;}"
+			        & ".ar{fill:var(--p);fill-opacity:.12;opacity:0;animation:fin .8s ease 1.2s forwards;}"
+			        & ".gp{fill:var(--bad);fill-opacity:.25;opacity:0;animation:fin .8s ease 1.4s forwards;}"
+			        & ".dot{opacity:0;animation:fin .4s ease 1.8s forwards;}"
+			        & ".df{fill:var(--p);stroke:var(--card);stroke-width:2;}"
+			        & ".dr2{fill:var(--muted);stroke:var(--card);stroke-width:2;}"
+			        & "</style>"
+			        & "<div class='k'><div class='mt card'>"
+			        & "<div class='hd fu d1'><div><div class='ti'>Monthly lending</div>"
+			        & "<div class='st'>Amount requested vs funded by posting month</div></div>"
+			        & "<div class='lg'><span><i style='background:var(--muted)'></i>Requested</span><span><i style='background:var(--p)'></i>Funded</span><span><i class='gpi'></i>Gap</span></div></div>"
+			        & "<svg viewBox='0 0 " & _W & " " & _H & "' width='" & _W & "' height='" & _H & "'>"
+			        & _grid & _years
+			        & "<path class='ar' d='M" & FORMAT(_x0, "0.0") & "," & _base & " L" & _fun & " L" & FORMAT(_xn, "0.0") & "," & _base & " Z'/>"
+			        & "<path class='gp' d='M" & _req & " L" & _funRev & " Z'/>"
+			        & "<path class='ln lr' pathLength='1' d='M" & _req & "'/>"
+			        & "<path class='ln lf' pathLength='1' d='M" & _fun & "'/>"
+			        & _dots & "</svg></div></div>"
+		displayFolder: HTML
+		lineageTag: c122fa7b-f3d4-495f-8629-238279dfe9a2
+
+	/// Geography scatter (604x228): one bubble per country with an MPI score, x = average regional MPI, y = loan amount on a log scale, bubble area = number of loans; dashed line at the MPI 0.25 high-poverty threshold; labels on the largest country on each side of the threshold and the poorest country. Bubbles pop in on load.
+	measure 'HTML MPI Scatter' =
+			// Purpose : Does lending follow poverty? Country MPI against amount lent.
+			// Logic   : Countries with a non-blank [Average Regional MPI] and loans. y uses log10 because
+			//           amounts span three orders of magnitude; radius = sqrt(loans / max loans) x 13 + 2.5.
+			//           Bubbles right of the 0.25 threshold (high poverty) use the accent, others the
+			//           secondary series colour.
+			// Used in : Geography & Poverty page.
+			VAR _W = 576
+			VAR _H = 164
+			VAR _PL = 46
+			VAR _PR = 14
+			VAR _PT = 10
+			VAR _PH = 126
+			VAR _PW = _W - _PL - _PR
+			VAR _base = _PT + _PH
+			VAR _c =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Countries'[Country]), NOT ISBLANK([Average Regional MPI]) && NOT ISBLANK([Total Loan Amount])),
+			        "@mpi", [Average Regional MPI],
+			        "@amt", [Total Loan Amount],
+			        "@n", [Total Loans]
+			    )
+			VAR _cnt = COUNTROWS(_c)
+			VAR _xmax = MAX(CEILING(MAXX(_c, [@mpi]), 0.1), 0.3)
+			VAR _lo = FLOOR(LOG10(MINX(_c, [@amt])), 1)
+			VAR _hi = CEILING(LOG10(MAXX(_c, [@amt])), 1)
+			VAR _nmax = MAXX(_c, [@n])
+			VAR _p =
+			    ADDCOLUMNS(
+			        _c,
+			        "@x", _PL + DIVIDE([@mpi], _xmax) * _PW,
+			        "@y", _base - DIVIDE(LOG10([@amt]) - _lo, _hi - _lo) * _PH,
+			        "@r", SQRT(DIVIDE([@n], _nmax)) * 13 + 2.5,
+			        "@rk", RANKX(_c, [@amt], , DESC, Skip)
+			    )
+			VAR _yt =
+			    CONCATENATEX(
+			        GENERATESERIES(_lo, _hi, 1),
+			        VAR _y = _base - DIVIDE([Value] - _lo, _hi - _lo) * _PH
+			        VAR _v = POWER(10, [Value])
+			        RETURN
+			            "<line class='gl' x1='" & _PL & "' x2='" & (_W - _PR) & "' y1='" & FORMAT(_y, "0.0") & "' y2='" & FORMAT(_y, "0.0") & "'/>"
+			                & "<text class='yl' x='" & (_PL - 6) & "' y='" & FORMAT(_y + 3, "0.0") & "' text-anchor='end'>" & IF(_v >= 1e6, FORMAT(_v / 1e6, "$#,0") & "M", FORMAT(_v / 1e3, "$#,0") & "K") & "</text>",
+			        ""
+			    )
+			VAR _xt =
+			    CONCATENATEX(
+			        GENERATESERIES(0, ROUND(_xmax * 10, 0), 1),
+			        VAR _x = _PL + DIVIDE([Value] / 10, _xmax) * _PW
+			        RETURN "<text class='xl' x='" & FORMAT(_x, "0.0") & "' y='" & (_base + 14) & "' text-anchor='middle'>" & FORMAT([Value] / 10, "0.0") & "</text>",
+			        ""
+			    )
+			VAR _thx = _PL + DIVIDE(0.25, _xmax) * _PW
+			VAR _bub =
+			    CONCATENATEX(
+			        _p,
+			        "<circle class='b" & IF([@mpi] >= 0.25, " hp", "") & "' cx='" & FORMAT([@x], "0.0") & "' cy='" & FORMAT([@y], "0.0") & "' r='" & FORMAT([@r], "0.0") & "' style='animation-delay:" & FORMAT(0.2 + [@rk] * 0.015, "0.00") & "s'/>",
+			        "",
+			        [@r], DESC
+			    )
+			VAR _lab =
+			    CONCATENATEX(
+			        FILTER(_p, [@amt] = MAXX(FILTER(_p, [@mpi] < 0.25), [@amt]) || [@amt] = MAXX(FILTER(_p, [@mpi] >= 0.25), [@amt]) || [@mpi] = MAXX(_p, [@mpi])),
+			        "<text class='bl' x='" & FORMAT([@x] + [@r] + 3, "0.0") & "' y='" & FORMAT([@y] + 3, "0.0") & "'>" & 'Countries'[Country] & "</text>",
+			        ""
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".sc{height:224px;padding:12px 14px 6px;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & "svg{display:block;margin-top:4px;overflow:visible;}"
+			        & ".gl{stroke:var(--grid);stroke-width:1;}"
+			        & ".yl,.xl{fill:var(--muted);font-size:10px;font-family:'Segoe UI';}"
+			        & ".ax{fill:var(--muted);font-size:9.5px;font-family:'Segoe UI';letter-spacing:.06em;}"
+			        & ".th{stroke:var(--bad);stroke-width:1.2;stroke-dasharray:4 3;opacity:.8;}"
+			        & ".thl{fill:var(--bad);font-size:9.5px;font-family:'Segoe UI Semibold';}"
+			        & "@keyframes bp{from{transform:scale(0);}to{transform:scale(1);}}"
+			        & ".b{fill:var(--s);fill-opacity:.45;stroke:var(--s);stroke-width:1;transform-box:fill-box;transform-origin:center;animation:bp .5s cubic-bezier(.3,1.5,.5,1) both;}"
+			        & ".b.hp{fill:var(--p);stroke:var(--p);fill-opacity:.55;}"
+			        & ".bl{fill:var(--text);font-size:10px;font-family:'Segoe UI Semibold';opacity:0;animation:fadeUp .5s ease 1.2s forwards;}"
+			        & "</style>"
+			        & "<div class='k'><div class='sc card'>"
+			        & "<div class='fu d1'><div class='ti'>Poverty vs lending, per country</div>"
+			        & "<div class='st'>" & _cnt & " countries with an MPI score &middot; bubble size = number of loans &middot; log scale</div></div>"
+			        & "<svg viewBox='0 0 " & _W & " " & _H & "' width='" & _W & "' height='" & _H & "'>"
+			        & _yt & _xt
+			        & "<line class='th' x1='" & FORMAT(_thx, "0.0") & "' x2='" & FORMAT(_thx, "0.0") & "' y1='" & _PT & "' y2='" & _base & "'/>"
+			        & "<text class='thl' x='" & FORMAT(_thx + 5, "0.0") & "' y='" & (_PT + 8) & "'>High poverty (MPI &#8805; 0.25) &#8594;</text>"
+			        & _bub & _lab
+			        & "<text class='ax' x='" & (_W - _PR) & "' y='" & (_base + 26) & "' text-anchor='end'>AVERAGE MPI &#8594;</text>"
+			        & "</svg></div></div>"
+		displayFolder: HTML
+		lineageTag: b9d8ea27-5bb9-4461-946b-bc141682967f
+
+	/// Geography country ranking (604x232): every loan country sorted by amount in a scrollable table with an amount bar, loans, an MPI badge coloured by poverty band (or 'no MPI'), women's share and median days to fund.
+	measure 'HTML Country Ranking' =
+			// Purpose : Full country ranking with poverty context, readable at a glance.
+			// Logic   : All countries with loans, sorted by amount; the table body scrolls (sticky header).
+			//           MPI badge bands: >= 0.40 very high, >= 0.25 high, >= 0.10 moderate, else low.
+			// Used in : Geography & Poverty page.
+			VAR _c =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Countries'[Country]), NOT ISBLANK([Total Loan Amount])),
+			        "@amt", [Total Loan Amount],
+			        "@n", [Total Loans],
+			        "@mpi", [Average Regional MPI],
+			        "@w", [Female Borrower %],
+			        "@d", [Median Days To Fund]
+			    )
+			VAR _cnt = COUNTROWS(_c)
+			VAR _max = MAXX(_c, [@amt])
+			VAR _r = ADDCOLUMNS(_c, "@rk", RANKX(_c, [@amt], , DESC, Skip))
+			VAR _rows =
+			    CONCATENATEX(
+			        _r,
+			        VAR _m = [@mpi]
+			        VAR _band =
+			            SWITCH(TRUE(),
+			                ISBLANK(_m), "<span class='mp na'>no MPI</span>",
+			                _m >= 0.4, "<span class='mp vh'>" & FORMAT(_m, "0.00") & "</span>",
+			                _m >= 0.25, "<span class='mp hi'>" & FORMAT(_m, "0.00") & "</span>",
+			                _m >= 0.1, "<span class='mp md'>" & FORMAT(_m, "0.00") & "</span>",
+			                "<span class='mp lo'>" & FORMAT(_m, "0.00") & "</span>")
+			        RETURN
+			            "<tr" & IF([@rk] <= 10, " class='fu' style='animation-delay:" & FORMAT(0.1 + [@rk] * 0.04, "0.00") & "s'", "") & ">"
+			                & "<td class='rk'>" & [@rk] & "</td><td class='nm'>" & 'Countries'[Country] & "</td>"
+			                & "<td class='bw'><span class='tr'><i class='bar' style='width:" & FORMAT(DIVIDE([@amt], _max) * 100, "0.0") & "%'></i></span><span class='av'>" & IF([@amt] >= 1e6, FORMAT([@amt] / 1e6, "$#,0.0") & "M", FORMAT([@amt] / 1e3, "$#,0") & "K") & "</span></td>"
+			                & "<td class='n'>" & FORMAT([@n], "#,0") & "</td><td class='n'>" & _band & "</td>"
+			                & "<td class='n'>" & FORMAT([@w], "0%") & "</td><td class='n'>" & FORMAT([@d], "0.0") & "</td></tr>",
+			        "",
+			        [@rk], ASC,
+			        'Countries'[Country], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".cr{height:228px;padding:12px 14px 8px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".sb{flex:1;overflow-y:auto;margin-top:6px;padding-right:4px;}"
+			        & ".sb::-webkit-scrollbar{width:6px;}.sb::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}.sb::-webkit-scrollbar-track{background:transparent;}"
+			        & "table{width:100%;border-collapse:collapse;font-size:11px;}"
+			        & "th{position:sticky;top:0;background:var(--card);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:0 5px 5px;border-bottom:1px solid var(--grid);z-index:1;}"
+			        & "th.l{text-align:left;}"
+			        & "td{padding:4px 5px;border-bottom:1px solid var(--grid);white-space:nowrap;}"
+			        & ".rk{width:20px;color:var(--accent);font-weight:600;}"
+			        & ".nm{font-weight:600;max-width:130px;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".bw{width:34%;}"
+			        & ".tr{display:inline-block;width:52%;height:6px;border-radius:3px;background:var(--track);overflow:hidden;vertical-align:middle;}"
+			        & ".tr i{display:block;height:100%;border-radius:3px;background:var(--p);}"
+			        & ".av{margin-left:8px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".n{text-align:right;}"
+			        & ".mp{display:inline-block;min-width:44px;text-align:center;padding:0 6px;border-radius:9px;font-size:10px;line-height:16px;border:1px solid;}"
+			        & ".mp.vh{color:var(--bad);}.mp.hi{color:var(--warn);}.mp.md{color:var(--hover);}.mp.lo{color:var(--good);}.mp.na{color:var(--muted);border-style:dashed;}"
+			        & "</style>"
+			        & "<div class='k'><div class='cr card'>"
+			        & "<div class='fu d1'><div class='ti'>Country ranking</div>"
+			        & "<div class='st'>All " & _cnt & " loan countries by amount &middot; MPI badge coloured by poverty band &middot; scroll for more</div></div>"
+			        & "<div class='sb'><table><tr><th></th><th class='l'>Country</th><th class='l'>Amount</th><th>Loans</th><th>MPI</th><th>Women</th><th>Days</th></tr>"
+			        & _rows & "</table></div></div></div>"
+		displayFolder: HTML
+		lineageTag: 577dd7d0-eecf-4c57-a463-450f474c4aaa
+
+	/// Sectors mosaic (584x292), replacing the native treemap: sectors sorted by amount are packed into three rows by cumulative share (row heights and tile widths proportional to amount); tile colour follows [Sector Metric Color] and the label shows the selected metric. Tiles scale in on load.
+	measure 'HTML Sector Mosaic' =
+			// Purpose : Treemap-style view (size = amount) whose colour follows the Sectors metric switcher.
+			// Logic   : Sectors sorted by amount; row = MIN(2, INT(share of amount ranked above / (1/3))),
+			//           so each row holds roughly a third of the money. Flexbox makes row heights and tile widths
+			//           proportional (flex-grow = amount). Label = the selected metric's value.
+			// Used in : Sectors & Activities page.
+			VAR _m = [Selected Sector Metric]
+			VAR _s =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Total Loan Amount])),
+			        "@a", [Total Loan Amount],
+			        "@col", [Sector Metric Color],
+			        "@v", [Sector Metric Value]
+			    )
+			VAR _tot = SUMX(_s, [@a])
+			VAR _c =
+			    ADDCOLUMNS(
+			        _s,
+			        "@before",
+			            VAR _a = [@a]
+			            VAR _nm = 'Loans'[sector]
+			            RETURN SUMX(FILTER(_s, [@a] > _a || ([@a] = _a && 'Loans'[sector] < _nm)), [@a])
+			    )
+			VAR _rw = ADDCOLUMNS(_c, "@row", MIN(2, INT(DIVIDE([@before], _tot) * 3)), "@rk", RANKX(_c, [@a], , DESC, Skip))
+			VAR _fmtUnit = SWITCH(_m, "Women", " women", "Funded", " funded", "Days", " days", "Loans", " loans", "Avg loan", " avg", "")
+			VAR _rows =
+			    CONCATENATEX(
+			        GENERATESERIES(0, 2, 1),
+			        VAR _r = [Value]
+			        VAR _rs = SUMX(FILTER(_rw, [@row] = _r), [@a])
+			        RETURN
+			            IF(
+			                _rs > 0,
+			                "<div class='mr' style='flex:" & FORMAT(_rs / 1e6, "0.000") & " 1 0'>"
+			                    & CONCATENATEX(
+			                        FILTER(_rw, [@row] = _r),
+			                        "<div class='tl" & IF(DIVIDE([@a], _rs) * 556 < 64, " sm", "") & "' title='" & 'Loans'[sector] & "' style='flex:" & FORMAT([@a] / 1e6, "0.000") & " 1 0;background:" & [@col] & ";animation-delay:" & FORMAT(0.1 + [@rk] * 0.05, "0.00") & "s'>"
+			                            & "<b>" & 'Loans'[sector] & "</b><span>"
+			                            & SWITCH(_m,
+			                                "Amount", FORMAT([@v] / 1e6, "$#,0.0") & "M",
+			                                "Loans", FORMAT([@v] / 1000, "#,0.0") & "K",
+			                                "Avg loan", FORMAT([@v], "$#,0"),
+			                                "Days", FORMAT([@v], "0.0"),
+			                                FORMAT([@v], "0%"))
+			                            & _fmtUnit & "</span></div>",
+			                        "",
+			                        [@a], DESC
+			                    )
+			                    & "</div>",
+			                ""
+			            ),
+			        "",
+			        [Value], ASC
+			    )
+			VAR _label =
+			    SWITCH(_m,
+			        "Amount", "loan amount (" & IF([Is Dark Mode], "brighter", "darker") & " = more)",
+			        "Loans", "number of loans (" & IF([Is Dark Mode], "brighter", "darker") & " = more)",
+			        "Avg loan", "average loan (" & IF([Is Dark Mode], "brighter", "darker") & " = larger)",
+			        "Women", "women's share (" & IF([Is Dark Mode], "brighter", "darker") & " = higher)",
+			        "Days", "funding speed (" & IF([Is Dark Mode], "brighter", "darker") & " = faster)",
+			        "Funded", "funded share (" & IF([Is Dark Mode], "brighter", "darker") & " = higher)")
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".ms{height:288px;padding:12px 14px 12px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".mo{flex:1;display:flex;flex-direction:column;gap:3px;margin-top:8px;min-height:0;}"
+			        & ".mr{display:flex;gap:3px;min-height:0;}"
+			        & "@keyframes tin{from{opacity:0;transform:scale(.85);}to{opacity:1;transform:scale(1);}}"
+			        & ".tl{min-width:0;border-radius:4px;padding:6px 8px;color:#FFFFFF;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;animation:tin .6s cubic-bezier(.2,.8,.2,1) both;}"
+			        & ".tl b{font-family:'Segoe UI Semibold';font-weight:600;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".tl span{font-size:10.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".tl.sm b,.tl.sm span{visibility:hidden;}"
+			        & "</style>"
+			        & "<div class='k'><div class='ms card'>"
+			        & "<div class='fu d1'><div class='ti'>What the money pays for</div>"
+			        & "<div class='st'>Size = loan amount &middot; colour = " & _label & "</div></div>"
+			        & "<div class='mo'>" & _rows & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: 264e5370-ca6b-4ccc-94af-8b724e6d4907
+
+	/// Repayment interval donut (288x292): animated SVG donut of loans by repayment interval (monthly, irregular, bullet, weekly) with the total in the centre and a legend with shares.
+	measure 'HTML Repayment Donut' =
+			// Purpose : How borrowers repay, as a clean animated donut.
+			// Logic   : Share of loans per repayment_interval, largest first; each arc is a circle stroke with
+			//           dasharray = arc length and dashoffset = -(arcs before), drawn in from 0 on load.
+			// Used in : Borrowers & Gender page.
+			VAR _rad = 50
+			VAR _C = 2 * PI() * _rad
+			VAR _dark = [Is Dark Mode]
+			VAR _t =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Loans'[repayment_interval]), NOT ISBLANK([Total Loans])),
+			        "@n", [Total Loans]
+			    )
+			VAR _tot = SUMX(_t, [@n])
+			VAR _rk =
+			    ADDCOLUMNS(
+			        _t,
+			        "@rk", RANKX(_t, [@n], , DESC, Skip),
+			        "@before", VAR _n = [@n] RETURN SUMX(FILTER(_t, [@n] > _n), [@n]) + 0
+			    )
+			VAR _p =
+			    ADDCOLUMNS(
+			        _rk,
+			        "@col",
+			            IF(_dark,
+			                SWITCH([@rk], 1, "#2CC295", 2, "#AACBC4", 3, "#00DF81", "#707D7D"),
+			                SWITCH([@rk], 1, "#03624C", 2, "#2CC295", 3, "#707D7D", "#AACBC4"))
+			    )
+			VAR _arcs =
+			    CONCATENATEX(
+			        _p,
+			        "<circle class='sg' cx='70' cy='70' r='" & _rad & "' style='stroke:" & [@col] & ";stroke-dasharray:" & FORMAT(MAX(DIVIDE([@n], _tot) * _C - 1.5, 0.6), "0.00") & " " & FORMAT(_C, "0.00") & ";stroke-dashoffset:" & FORMAT(-DIVIDE([@before], _tot) * _C, "0.00") & ";animation-delay:" & FORMAT(0.15 + [@rk] * 0.12, "0.00") & "s'/>",
+			        "",
+			        [@rk], ASC
+			    )
+			VAR _leg =
+			    CONCATENATEX(
+			        _p,
+			        "<div class='lr fu' style='animation-delay:" & FORMAT(0.3 + [@rk] * 0.08, "0.00") & "s'><span><i style='background:" & [@col] & "'></i>" & UPPER(LEFT('Loans'[repayment_interval], 1)) & MID('Loans'[repayment_interval], 2, 20) & "</span>"
+			            & "<b>" & IF(DIVIDE([@n], _tot) < 0.01, FORMAT(DIVIDE([@n], _tot), "0.0%"), FORMAT(DIVIDE([@n], _tot), "0%")) & "</b></div>",
+			        "",
+			        [@rk], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".dn{height:288px;padding:12px 14px 10px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".dw{position:relative;width:140px;height:140px;margin:10px auto 8px;}"
+			        & "@keyframes arc{from{stroke-dasharray:0 400;}}"
+			        & ".sg{fill:none;stroke-width:18;transform:rotate(-90deg);transform-origin:70px 70px;animation:arc 1s cubic-bezier(.3,.7,.3,1) both;}"
+			        & ".tr{fill:none;stroke:var(--track);stroke-width:18;}"
+			        & ".ct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}"
+			        & ".ct b{font-size:20px;font-family:'Segoe UI Semibold';font-weight:600;line-height:1.1;}"
+			        & ".ct span{font-size:10px;color:var(--muted);}"
+			        & ".lr{display:flex;justify-content:space-between;font-size:11px;padding:2px 6px;}"
+			        & ".lr i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px;}"
+			        & ".lr b{font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & "</style>"
+			        & "<div class='k'><div class='dn card'>"
+			        & "<div class='fu d1'><div class='ti'>Repayment interval</div><div class='st'>Share of loans</div></div>"
+			        & "<div class='dw fu d2'><svg viewBox='0 0 140 140' width='140' height='140'><circle class='tr' cx='70' cy='70' r='" & _rad & "'/>" & _arcs & "</svg>"
+			        & "<div class='ct'><b>" & FORMAT(_tot / 1000, "#,0") & "K</b><span>loans</span></div></div>"
+			        & _leg & "</div></div>"
+		displayFolder: HTML
+		lineageTag: d099b848-8331-47c2-ad99-337dda8dc44b
+
+	/// Funding Dynamics histogram (700x236): fully funded loans by days-to-fund bin as animated columns; bins within one week in the accent colour, later bins muted; share labels on top and a 'funded within a week' callout.
+	measure 'HTML Fund Time Histogram' =
+			// Purpose : How long lenders take to fully fund a loan.
+			// Logic   : 'Fund Time Bins' rows with [Loans In Fund Time Bin], ordered by Bin Order; column height =
+			//           count / max; bins ending at or before 7 days are highlighted; callout = share within 7 days.
+			// Used in : Funding Dynamics page.
+			VAR _b =
+			    ADDCOLUMNS(
+			        FILTER(ALL('Fund Time Bins'), TRUE()),
+			        "@n", [Loans In Fund Time Bin]
+			    )
+			VAR _tot = SUMX(_b, [@n])
+			VAR _max = MAXX(_b, [@n])
+			VAR _wk = SUMX(FILTER(_b, 'Fund Time Bins'[Max Days] <= 7), [@n])
+			VAR _cols =
+			    CONCATENATEX(
+			        _b,
+			        VAR _h = DIVIDE([@n], _max) * 100
+			        RETURN
+			            "<div class='cl'><span class='lb fu' style='animation-delay:" & FORMAT(0.6 + 'Fund Time Bins'[Bin Order] * 0.06, "0.00") & "s'>" & FORMAT(DIVIDE([@n], _tot), "0%") & "</span>"
+			                & "<div class='bw'><i class='col" & IF('Fund Time Bins'[Max Days] <= 7, " wk", "") & "' style='height:" & FORMAT(_h, "0.0") & "%;animation-delay:" & FORMAT(0.15 + 'Fund Time Bins'[Bin Order] * 0.06, "0.00") & "s'></i></div>"
+			                & "<span class='xl'>" & SUBSTITUTE('Fund Time Bins'[Bin], "<", "&lt;") & "</span></div>",
+			        "",
+			        'Fund Time Bins'[Bin Order], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".hg{height:232px;padding:12px 14px 8px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".co{text-align:right;font-size:10.5px;color:var(--muted);line-height:1.2;white-space:nowrap;}"
+			        & ".co b{display:block;font-size:20px;font-family:'Segoe UI Semibold';font-weight:600;color:var(--accent);}"
+			        & ".cs{flex:1;display:flex;gap:10px;margin-top:6px;min-height:0;}"
+			        & ".cl{flex:1;display:flex;flex-direction:column;align-items:stretch;min-width:0;}"
+			        & ".lb{font-size:10px;color:var(--muted);text-align:center;height:14px;}"
+			        & ".bw{flex:1;display:flex;align-items:flex-end;border-bottom:1px solid var(--border);}"
+			        & ".col{display:block;width:100%;border-radius:4px 4px 0 0;background:var(--border);transform-origin:bottom center;animation:growY .9s cubic-bezier(.2,.7,.2,1) both;}"
+			        & ".col.wk{background:var(--p);}"
+			        & ".xl{font-size:10px;color:var(--muted);text-align:center;padding-top:4px;white-space:nowrap;}"
+			        & "</style>"
+			        & "<div class='k'><div class='hg card'>"
+			        & "<div class='hd fu d1'><div><div class='ti'>How long until a loan is fully funded?</div>"
+			        & "<div class='st'>Fully funded loans by days from posting to full funding</div></div>"
+			        & "<div class='co'><b>" & FORMAT(DIVIDE(_wk, _tot), "0%") & "</b>funded within a week</div></div>"
+			        & "<div class='cs'>" & _cols & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: 14e1f240-d4ba-46f0-adce-02f4e3284868
+
+	/// Funding speed by sector (464x480): sectors fastest first with a bar of median days to fund against a dashed all-sector median, faster-than-overall bars in the Good colour and slower in the Bad colour, plus each sector's share funded within 7 days.
+	measure 'HTML Speed By Sector' =
+			// Purpose : Which sectors lenders fund fastest.
+			// Logic   : [Median Days To Fund] per sector, ascending; bar scale 0..max; overall = the median
+			//           across the selected sectors; second number = [Funded Within 7 Days %].
+			// Used in : Funding Dynamics page.
+			VAR _overall = CALCULATE([Median Days To Fund], ALLSELECTED('Loans'[sector]))
+			VAR _t =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Median Days To Fund])),
+			        "@d", [Median Days To Fund],
+			        "@w", [Funded Within 7 Days %]
+			    )
+			VAR _max = MAXX(_t, [@d]) * 1.08
+			VAR _r = ADDCOLUMNS(_t, "@rk", RANKX(_t, [@d], , ASC, Skip))
+			VAR _rows =
+			    CONCATENATEX(
+			        _r,
+			        "<div class='rw fu' style='animation-delay:" & FORMAT(0.08 + [@rk] * 0.035, "0.00") & "s'>"
+			            & "<span class='rk'>" & [@rk] & "</span><span class='nm'>" & 'Loans'[sector] & "</span>"
+			            & "<span class='tr'><i class='bar " & IF([@d] <= _overall, "g", "b") & "' style='width:" & FORMAT(DIVIDE([@d], _max) * 100, "0.0") & "%;animation-delay:" & FORMAT(0.2 + [@rk] * 0.035, "0.00") & "s'></i>"
+			            & "<i class='ov' style='left:" & FORMAT(DIVIDE(_overall, _max) * 100, "0.0") & "%'></i></span>"
+			            & "<span class='v'>" & FORMAT([@d], "0.0") & "<small> d</small></span>"
+			            & "<span class='w'>" & FORMAT([@w], "0%") & "</span></div>",
+			        "",
+			        [@d], ASC,
+			        'Loans'[sector], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".sp{height:476px;padding:12px 14px 12px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".st i{display:inline-block;width:0;height:10px;border-left:1.5px dashed var(--muted);margin:0 4px 0 2px;vertical-align:-1px;}"
+			        & ".st b{color:var(--text);font-weight:600;}"
+			        & ".hdr{display:grid;grid-template-columns:18px 104px 1fr 50px 44px;column-gap:8px;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:10px;padding-bottom:5px;border-bottom:1px solid var(--grid);}"
+			        & ".hdr span:nth-child(n+4){text-align:right;}"
+			        & ".rows{flex:1;display:flex;flex-direction:column;}"
+			        & ".rw{flex:1;display:grid;grid-template-columns:18px 104px 1fr 50px 44px;column-gap:8px;align-items:center;font-size:11px;border-bottom:1px solid var(--grid);}"
+			        & ".rw:last-child{border-bottom:none;}"
+			        & ".rk{color:var(--accent);font-weight:600;text-align:right;}"
+			        & ".nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".tr{position:relative;height:8px;border-radius:4px;background:var(--track);}"
+			        & ".tr .bar{display:block;height:100%;border-radius:4px;}"
+			        & ".g{background:var(--good);}.b{background:var(--bad);opacity:.75;}"
+			        & ".ov{position:absolute;top:-4px;bottom:-4px;border-left:1.5px dashed var(--muted);}"
+			        & ".v{text-align:right;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".v small{font-size:9.5px;color:var(--muted);font-weight:400;}"
+			        & ".w{text-align:right;color:var(--muted);}"
+			        & "</style>"
+			        & "<div class='k'><div class='sp card'>"
+			        & "<div class='fu d1'><div class='ti'>Funding speed by sector</div>"
+			        & "<div class='st'>Median days from posting to full funding, fastest first <i></i>all sectors <b>" & FORMAT(_overall, "0.0") & " days</b></div></div>"
+			        & "<div class='hdr'><span></span><span>Sector</span><span>Median days</span><span></span><span>&le; 7 d</span></div>"
+			        & "<div class='rows'>" & _rows & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: fb4f38ff-9619-419d-8bdf-6ff0aa2d9cfe
+
+	/// Lenders vs loan size (700x232): SVG scatter per sector, x = average loan, y = average lenders per loan, bubble area = number of loans, with a least-squares trend line and a 'each extra $1,000 needs about N more lenders' callout. Bubbles pop in on load.
+	measure 'HTML Lenders Scatter' =
+			// Purpose : Show that bigger loans need more lenders, per sector.
+			// Logic   : Points per sector; trend = ordinary least squares of lenders on average loan across
+			//           sectors (unweighted); callout = slope x 1000. Radius = sqrt(loans / max) x 14 + 3.
+			// Used in : Funding Dynamics page.
+			VAR _W = 672
+			VAR _H = 166
+			VAR _PL = 36
+			VAR _PR = 16
+			VAR _PT = 10
+			VAR _PH = 128
+			VAR _PW = _W - _PL - _PR
+			VAR _base = _PT + _PH
+			VAR _s =
+			    ADDCOLUMNS(
+			        FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Average Lenders per Loan])),
+			        "@x", [Average Loan Amount],
+			        "@y", [Average Lenders per Loan],
+			        "@n", [Total Loans]
+			    )
+			VAR _k = COUNTROWS(_s)
+			VAR _mx = AVERAGEX(_s, [@x])
+			VAR _my = AVERAGEX(_s, [@y])
+			VAR _slope = DIVIDE(SUMX(_s, ([@x] - _mx) * ([@y] - _my)), SUMX(_s, ([@x] - _mx) ^ 2))
+			VAR _icpt = _my - _slope * _mx
+			VAR _xmax = CEILING(MAXX(_s, [@x]) * 1.05, 500)
+			VAR _ymax = CEILING(MAXX(_s, [@y]) * 1.1, 10)
+			VAR _nmax = MAXX(_s, [@n])
+			VAR _p =
+			    ADDCOLUMNS(
+			        _s,
+			        "@px", _PL + DIVIDE([@x], _xmax) * _PW,
+			        "@py", _base - DIVIDE([@y], _ymax) * _PH,
+			        "@r", SQRT(DIVIDE([@n], _nmax)) * 14 + 3,
+			        "@rk", RANKX(_s, [@n], , DESC, Skip)
+			    )
+			VAR _x1 = MINX(_s, [@x]) * 0.9
+			VAR _x2 = MAXX(_s, [@x]) * 1.02
+			VAR _yt =
+			    CONCATENATEX(
+			        GENERATESERIES(0, 4, 1),
+			        VAR _v = [Value] * _ymax / 4
+			        VAR _y = _base - DIVIDE(_v, _ymax) * _PH
+			        RETURN
+			            "<line class='gl' x1='" & _PL & "' x2='" & (_W - _PR) & "' y1='" & FORMAT(_y, "0.0") & "' y2='" & FORMAT(_y, "0.0") & "'/>"
+			                & "<text class='yl' x='" & (_PL - 6) & "' y='" & FORMAT(_y + 3, "0.0") & "' text-anchor='end'>" & FORMAT(_v, "0") & "</text>",
+			        ""
+			    )
+			VAR _xt =
+			    CONCATENATEX(
+			        GENERATESERIES(0, 4, 1),
+			        VAR _v = [Value] * _xmax / 4
+			        VAR _x = _PL + DIVIDE(_v, _xmax) * _PW
+			        RETURN "<text class='xl' x='" & FORMAT(_x, "0.0") & "' y='" & (_base + 14) & "' text-anchor='middle'>" & FORMAT(_v, "$#,0") & "</text>",
+			        ""
+			    )
+			VAR _trend =
+			    "<line class='trd' pathLength='1' x1='" & FORMAT(_PL + DIVIDE(_x1, _xmax) * _PW, "0.0") & "' y1='" & FORMAT(_base - DIVIDE(_icpt + _slope * _x1, _ymax) * _PH, "0.0")
+			        & "' x2='" & FORMAT(_PL + DIVIDE(_x2, _xmax) * _PW, "0.0") & "' y2='" & FORMAT(_base - DIVIDE(_icpt + _slope * _x2, _ymax) * _PH, "0.0") & "'/>"
+			VAR _bub =
+			    CONCATENATEX(
+			        _p,
+			        "<circle class='bb' cx='" & FORMAT([@px], "0.0") & "' cy='" & FORMAT([@py], "0.0") & "' r='" & FORMAT([@r], "0.0") & "' style='animation-delay:" & FORMAT(0.2 + [@rk] * 0.05, "0.00") & "s'/>",
+			        "",
+			        [@r], DESC
+			    )
+			VAR _lab =
+			    CONCATENATEX(
+			        FILTER(_p, [@rk] = 1 || [@x] = MAXX(_s, [@x]) || [@x] = MINX(_s, [@x]) || [@y] = MAXX(_s, [@y])),
+			        "<text class='bl' x='" & FORMAT([@px] + [@r] + 3, "0.0") & "' y='" & FORMAT([@py] + 3, "0.0") & "'>" & 'Loans'[sector] & "</text>",
+			        ""
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".ls{height:228px;padding:12px 14px 6px;overflow:hidden;}"
+			        & ".hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".co{text-align:right;font-size:10.5px;color:var(--muted);line-height:1.2;white-space:nowrap;}"
+			        & ".co b{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;color:var(--accent);}"
+			        & "svg{display:block;margin-top:4px;overflow:visible;}"
+			        & ".gl{stroke:var(--grid);stroke-width:1;}"
+			        & ".yl,.xl{fill:var(--muted);font-size:10px;font-family:'Segoe UI';}"
+			        & "@keyframes draw{to{stroke-dashoffset:0;}}"
+			        & ".trd{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.2s ease 1s forwards;}"
+			        & "@keyframes bp{from{transform:scale(0);}to{transform:scale(1);}}"
+			        & ".bb{fill:var(--p);fill-opacity:.35;stroke:var(--p);stroke-width:1.2;transform-box:fill-box;transform-origin:center;animation:bp .5s cubic-bezier(.3,1.5,.5,1) both;}"
+			        & ".bl{fill:var(--text);font-size:10px;font-family:'Segoe UI Semibold';opacity:0;animation:fadeUp .5s ease 1.2s forwards;}"
+			        & "</style>"
+			        & "<div class='k'><div class='ls card'>"
+			        & "<div class='hd fu d1'><div><div class='ti'>Bigger loans need more lenders</div>"
+			        & "<div class='st'>Per sector: average loan vs lenders per loan &middot; bubble size = number of loans &middot; dashed = trend</div></div>"
+			        & "<div class='co'>every extra $1,000<br><b>+" & FORMAT(_slope * 1000, "0.0") & " lenders</b></div></div>"
+			        & "<svg viewBox='0 0 " & _W & " " & _H & "' width='" & _W & "' height='" & _H & "'>"
+			        & _yt & _xt & _trend & _bub & _lab & "</svg></div></div>"
+		displayFolder: HTML
+		lineageTag: 1a1a9894-85c3-4ace-924c-0fb155aa505f
+
+	/// Country Profile sectors (388x300): top 8 sectors by loan amount for the drilled-through country with animated bars, amount and share.
+	measure 'HTML Country Sectors' =
+			// Purpose : What the money pays for in one country.
+			// Logic   : TOPN 8 sectors by [Total Loan Amount]; bar = amount / leader; share = of the country total.
+			// Used in : Country Profile page.
+			VAR _tot = [Total Loan Amount]
+			VAR _t = ADDCOLUMNS(FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Total Loan Amount])), "@a", [Total Loan Amount])
+			VAR _cnt = COUNTROWS(_t)
+			VAR _top = TOPN(8, _t, [@a], DESC, 'Loans'[sector], ASC)
+			VAR _max = MAXX(_top, [@a])
+			VAR _r = ADDCOLUMNS(_top, "@rk", RANKX(_top, [@a], , DESC, Skip))
+			VAR _rows =
+			    CONCATENATEX(
+			        _r,
+			        "<div class='rw fu' style='animation-delay:" & FORMAT(0.08 + [@rk] * 0.05, "0.00") & "s'>"
+			            & "<span class='nm'>" & 'Loans'[sector] & "</span>"
+			            & "<span class='tr'><i class='bar' style='width:" & FORMAT(DIVIDE([@a], _max) * 100, "0.0") & "%;animation-delay:" & FORMAT(0.2 + [@rk] * 0.05, "0.00") & "s'></i></span>"
+			            & "<span class='v'>" & IF([@a] >= 1e6, FORMAT([@a] / 1e6, "$#,0.0") & "M", FORMAT([@a] / 1e3, "$#,0") & "K") & "</span>"
+			            & "<span class='s'>" & FORMAT(DIVIDE([@a], _tot), "0%") & "</span></div>",
+			        "",
+			        [@rk], ASC,
+			        'Loans'[sector], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".cs{height:296px;padding:12px 14px 12px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".rows{flex:1;display:flex;flex-direction:column;justify-content:space-around;margin-top:6px;}"
+			        & ".rw{display:grid;grid-template-columns:96px 1fr 56px 34px;column-gap:8px;align-items:center;font-size:11px;}"
+			        & ".nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".tr{height:8px;border-radius:4px;background:var(--track);overflow:hidden;}"
+			        & ".tr i{display:block;height:100%;border-radius:4px;background:var(--p);}"
+			        & ".v{text-align:right;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".s{text-align:right;color:var(--muted);}"
+			        & "</style>"
+			        & "<div class='k'><div class='cs card'>"
+			        & "<div class='fu d1'><div class='ti'>Sectors</div><div class='st'>Loan amount by sector" & IF(_cnt > 8, " &middot; top 8 of " & _cnt, "") & "</div></div>"
+			        & "<div class='rows'>" & _rows & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: 2996ff4a-7d64-4cc4-a15e-2a87aef95cab
+
+	/// Country Profile borrower make-up (384x300): animated SVG donut of loans by borrower group type (same colours as the Borrowers page waffle) with a legend of shares.
+	measure 'HTML Country Makeup' =
+			// Purpose : Who borrows in one country: individual women / men, groups.
+			// Logic   : Share of loans per borrower_group_type in a fixed order (women -> mixed -> men -> unknown);
+			//           arcs are circle strokes with dasharray/dashoffset, drawn in on load.
+			// Used in : Country Profile page.
+			VAR _rad = 48
+			VAR _C = 2 * PI() * _rad
+			VAR _dark = [Is Dark Mode]
+			VAR _groups =
+			    DATATABLE(
+			        "G", STRING, "Lbl", STRING, "Ord", INTEGER, "CL", STRING, "CD", STRING,
+			        {
+			            {"Individual - Female", "Individual women", 1, "#03624C", "#2CC295"},
+			            {"Group - All Female", "Women's groups", 2, "#2CC295", "#00DF81"},
+			            {"Group - Mixed", "Mixed groups", 3, "#AACBC4", "#AACBC4"},
+			            {"Individual - Male", "Individual men", 4, "#707D7D", "#707D7D"},
+			            {"Group - All Male", "Men's groups", 5, "#3E4A4A", "#4A5656"},
+			            {"Unknown", "Unknown", 6, "#DCE7E4", "#0B453A"}
+			        }
+			    )
+			VAR _g =
+			    FILTER(
+			        ADDCOLUMNS(
+			            _groups,
+			            "@n", VAR _k = [G] RETURN CALCULATE([Total Loans], 'Loans'[borrower_group_type] = _k),
+			            "@col", IF(_dark, [CD], [CL])
+			        ),
+			        [@n] > 0
+			    )
+			VAR _tot = SUMX(_g, [@n])
+			VAR _p = ADDCOLUMNS(_g, "@before", VAR _o = [Ord] RETURN SUMX(FILTER(_g, [Ord] < _o), [@n]) + 0)
+			VAR _arcs =
+			    CONCATENATEX(
+			        _p,
+			        "<circle class='sg' cx='66' cy='66' r='" & _rad & "' style='stroke:" & [@col] & ";stroke-dasharray:" & FORMAT(MAX(DIVIDE([@n], _tot) * _C - 1.5, 0.6), "0.00") & " " & FORMAT(_C, "0.00") & ";stroke-dashoffset:" & FORMAT(-DIVIDE([@before], _tot) * _C, "0.00") & ";animation-delay:" & FORMAT(0.15 + [Ord] * 0.1, "0.00") & "s'/>",
+			        "",
+			        [Ord], ASC
+			    )
+			VAR _leg =
+			    CONCATENATEX(
+			        _p,
+			        "<div class='lr fu' style='animation-delay:" & FORMAT(0.3 + [Ord] * 0.07, "0.00") & "s'><span><i style='background:" & [@col] & "'></i>" & [Lbl] & "</span><b>" & IF(DIVIDE([@n], _tot) < 0.005, "&lt;1%", FORMAT(DIVIDE([@n], _tot), "0%")) & "</b></div>",
+			        "",
+			        [Ord], ASC
+			    )
+			VAR _women = SUMX(FILTER(_p, [Ord] <= 2), [@n])
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".cm{height:296px;padding:12px 14px 10px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".bd{flex:1;display:flex;align-items:center;gap:16px;}"
+			        & ".dw{position:relative;width:132px;height:132px;flex:none;}"
+			        & "@keyframes arc{from{stroke-dasharray:0 400;}}"
+			        & ".sg{fill:none;stroke-width:17;transform:rotate(-90deg);transform-origin:66px 66px;animation:arc 1s cubic-bezier(.3,.7,.3,1) both;}"
+			        & ".tr{fill:none;stroke:var(--track);stroke-width:17;}"
+			        & ".ct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}"
+			        & ".ct b{font-size:20px;font-family:'Segoe UI Semibold';font-weight:600;line-height:1.1;}"
+			        & ".ct span{font-size:10px;color:var(--muted);}"
+			        & ".lg{flex:1;min-width:0;}"
+			        & ".lr{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--grid);}"
+			        & ".lr:last-child{border-bottom:none;}"
+			        & ".lr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}"
+			        & ".lr i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px;}"
+			        & ".lr b{font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & "</style>"
+			        & "<div class='k'><div class='cm card'>"
+			        & "<div class='fu d1'><div class='ti'>Borrower make-up</div><div class='st'>Share of loans by borrower group type</div></div>"
+			        & "<div class='bd'><div class='dw fu d2'><svg viewBox='0 0 132 132' width='132' height='132'><circle class='tr' cx='66' cy='66' r='" & _rad & "'/>" & _arcs & "</svg>"
+			        & "<div class='ct'><b>" & FORMAT(DIVIDE(_women, _tot), "0%") & "</b><span>women-led</span></div></div>"
+			        & "<div class='lg'>" & _leg & "</div></div></div></div>"
+		displayFolder: HTML
+		lineageTag: c36b2ee6-d1d3-4c2e-bf6b-a078f5aa5d08
+
+	/// Explore drivers panel (1176x300), replacing the key influencers visual: for five factors (loan term, sector, borrower group, repayment interval, world region) the riskiest and safest group's share of loans not fully funded against the overall rate, ranked by how much the riskiest group exceeds it. Pre-disbursal is deliberately excluded: unfunded loans are never disbursed, so it leaks the outcome.
+	measure 'HTML Funding Drivers' =
+			// Purpose : A static, readable answer to 'what makes a loan less likely to be fully funded?'.
+			// Logic   : Unfunded rate = 1 - [Fully Funded Loan %]. For each factor, groups with >= 500 loans;
+			//           riskiest = highest unfunded rate, safest = lowest; ratio = riskiest / overall.
+			//           Term uses buckets (<= 12, 13-17, 18-40, > 40 months). Cards sorted by ratio.
+			//           is_pre_disbursed is NOT a driver: loans that never fund are never disbursed (leakage).
+			// Used in : Explore page.
+			VAR _all = 1 - [Fully Funded Loan %]
+			VAR _terms =
+			    ADDCOLUMNS(
+			        DATATABLE("Nm", STRING, "Lo", INTEGER, "Hi", INTEGER, {{"12 months or less", 0, 12}, {"13-17 months", 13, 17}, {"18-40 months", 18, 40}, {"over 40 months", 41, 9999}}),
+			        "@n", VAR _lo = [Lo] VAR _hi = [Hi] RETURN CALCULATE([Total Loans], 'Loans'[term_in_months] >= _lo, 'Loans'[term_in_months] <= _hi),
+			        "@u", VAR _lo = [Lo] VAR _hi = [Hi] RETURN 1 - CALCULATE([Fully Funded Loan %], 'Loans'[term_in_months] >= _lo, 'Loans'[term_in_months] <= _hi)
+			    )
+			VAR _tT = FILTER(_terms, [@n] >= 500)
+			VAR _sec = FILTER(ADDCOLUMNS(VALUES('Loans'[sector]), "@n", [Total Loans], "@u", 1 - [Fully Funded Loan %]), [@n] >= 500)
+			VAR _grp = FILTER(ADDCOLUMNS(FILTER(VALUES('Loans'[borrower_group_type]), 'Loans'[borrower_group_type] <> "Unknown"), "@n", [Total Loans], "@u", 1 - [Fully Funded Loan %]), [@n] >= 500)
+			VAR _rep = FILTER(ADDCOLUMNS(VALUES('Loans'[repayment_interval]), "@n", [Total Loans], "@u", 1 - [Fully Funded Loan %]), [@n] >= 500)
+			VAR _reg = FILTER(ADDCOLUMNS(FILTER(VALUES('Countries'[World Region]), 'Countries'[World Region] <> "Not classified"), "@n", [Total Loans], "@u", 1 - [Fully Funded Loan %]), [@n] >= 500)
+			VAR _cards =
+			    UNION(
+			        ROW("F", "Loan term", "WN", MAXX(TOPN(1, _tT, [@u], DESC), [Nm]), "WR", MAXX(_tT, [@u]), "BN", MAXX(TOPN(1, _tT, [@u], ASC), [Nm]), "BR", MINX(_tT, [@u])),
+			        ROW("F", "Sector", "WN", MAXX(TOPN(1, _sec, [@u], DESC), 'Loans'[sector]), "WR", MAXX(_sec, [@u]), "BN", MAXX(TOPN(1, _sec, [@u], ASC), 'Loans'[sector]), "BR", MINX(_sec, [@u])),
+			        ROW("F", "Borrower group", "WN", MAXX(TOPN(1, _grp, [@u], DESC), 'Loans'[borrower_group_type]), "WR", MAXX(_grp, [@u]), "BN", MAXX(TOPN(1, _grp, [@u], ASC), 'Loans'[borrower_group_type]), "BR", MINX(_grp, [@u])),
+			        ROW("F", "Repayment", "WN", MAXX(TOPN(1, _rep, [@u], DESC), 'Loans'[repayment_interval]), "WR", MAXX(_rep, [@u]), "BN", MAXX(TOPN(1, _rep, [@u], ASC), 'Loans'[repayment_interval]), "BR", MINX(_rep, [@u])),
+			        ROW("F", "World region", "WN", MAXX(TOPN(1, _reg, [@u], DESC), 'Countries'[World Region]), "WR", MAXX(_reg, [@u]), "BN", MAXX(TOPN(1, _reg, [@u], ASC), 'Countries'[World Region]), "BR", MINX(_reg, [@u]))
+			    )
+			VAR _c = FILTER(ADDCOLUMNS(_cards, "@ratio", DIVIDE([WR], _all)), NOT ISBLANK([WR]))
+			VAR _cr = ADDCOLUMNS(_c, "@rk", RANKX(_c, [@ratio], , DESC, Skip))
+			VAR _scale = MAX(MAXX(_c, [WR]), _all) * 1.1
+			VAR _html =
+			    CONCATENATEX(
+			        _cr,
+			        "<div class='dv fu' style='animation-delay:" & FORMAT(0.1 + [@rk] * 0.08, "0.00") & "s'>"
+			            & "<div class='fn'><span class='rk'>" & [@rk] & "</span>" & [F] & "</div>"
+			            & "<div class='big'>" & FORMAT([@ratio], "0.0") & "&times;</div>"
+			            & "<div class='sub'>the average unfunded rate for <b>" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([WN], "Individual - Female", "Individual women"), "Individual - Male", "Individual men"), "Group - All Female", "Women's groups"), "Group - All Male", "Men's groups"), "Group - Mixed", "Mixed groups"), "bullet", "Bullet"), "monthly", "Monthly"), "weekly", "Weekly"), "irregular", "Irregular") & "</b></div>"
+			            & "<div class='br'><span>" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([WN], "Individual - Female", "Individual women"), "Individual - Male", "Individual men"), "Group - All Female", "Women's groups"), "Group - All Male", "Men's groups"), "Group - Mixed", "Mixed groups"), "bullet", "Bullet"), "monthly", "Monthly"), "weekly", "Weekly"), "irregular", "Irregular") & "</span><span class='tr'><i class='bar b' style='width:" & FORMAT(DIVIDE([WR], _scale) * 100, "0.0") & "%;animation-delay:" & FORMAT(0.4 + [@rk] * 0.08, "0.00") & "s'></i></span><em>" & FORMAT([WR], "0.0%") & "</em></div>"
+			            & "<div class='br'><span>Average</span><span class='tr'><i class='bar m' style='width:" & FORMAT(DIVIDE(_all, _scale) * 100, "0.0") & "%;animation-delay:" & FORMAT(0.45 + [@rk] * 0.08, "0.00") & "s'></i></span><em>" & FORMAT(_all, "0.0%") & "</em></div>"
+			            & "<div class='br'><span>" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE([BN], "Individual - Female", "Individual women"), "Individual - Male", "Individual men"), "Group - All Female", "Women's groups"), "Group - All Male", "Men's groups"), "Group - Mixed", "Mixed groups"), "bullet", "Bullet"), "monthly", "Monthly"), "weekly", "Weekly"), "irregular", "Irregular") & "</span><span class='tr'><i class='bar g' style='width:" & FORMAT(DIVIDE([BR], _scale) * 100, "0.0") & "%;animation-delay:" & FORMAT(0.5 + [@rk] * 0.08, "0.00") & "s'></i></span><em>" & FORMAT([BR], "0.0%") & "</em></div>"
+			            & "</div>",
+			        "",
+			        [@rk], ASC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".fd{height:296px;padding:12px 14px 12px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".st b{color:var(--text);font-weight:600;}"
+			        & ".gd{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:10px;}"
+			        & ".dv{background:var(--card2);border:1px solid var(--grid);border-radius:var(--radius);padding:10px 14px;display:flex;flex-direction:column;min-width:0;}"
+			        & ".fn{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;}"
+			        & ".rk{display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;background:var(--p);color:var(--card);font-size:9.5px;margin-right:6px;letter-spacing:0;}"
+			        & ".big{font-size:28px;font-family:'Segoe UI Semibold';font-weight:600;color:var(--bad);line-height:1.15;margin-top:6px;}"
+			        & ".sub{font-size:10.5px;color:var(--muted);line-height:1.3;min-height:28px;}"
+			        & ".sub b{color:var(--text);font-weight:600;}"
+			        & ".br{display:grid;grid-template-columns:1fr;font-size:10px;margin-top:6px;}"
+			        & ".br span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);}"
+			        & ".br .tr{height:6px;border-radius:3px;background:var(--track);overflow:hidden;margin-top:2px;}"
+			        & ".br .tr i{display:block;height:100%;border-radius:3px;}"
+			        & ".br em{font-style:normal;font-family:'Segoe UI Semibold';font-weight:600;font-size:10px;margin-top:1px;}"
+			        & ".b{background:var(--bad);}.m{background:var(--muted);}.g{background:var(--good);}"
+			        & "</style>"
+			        & "<div class='k'><div class='fd card'>"
+			        & "<div class='fu d1'><div class='ti'>What stops a loan from being fully funded?</div>"
+			        & "<div class='st'>Share of loans not fully funded: overall <b>" & FORMAT(_all, "0.0%") & "</b>. For each factor, the riskiest vs the safest group (groups with 500+ loans), strongest driver first.</div></div>"
+			        & "<div class='gd'>" & _html & "</div></div></div>"
+		displayFolder: HTML
+		lineageTag: dc765047-6702-4f6e-a3a9-355b0e79bd53
+
+	/// Explore heatmap (1176x292), replacing the decomposition tree: share of loans not fully funded for every world region x sector cell, green below the overall rate and red above it, with the value in each cell (cells with fewer than 30 loans are left empty).
+	measure 'HTML Funding Heatmap' =
+			// Purpose : Spot where loans go unfunded across two dimensions at once.
+			// Logic   : Rows = classified world regions, columns = sectors (both by loan count);
+			//           cell = 1 - [Fully Funded Loan %] if the cell has >= 30 loans. Colour by ratio to the
+			//           overall rate: < 0.5 strong green, < 0.9 green, <= 1.1 neutral, < 2 red, else strong red.
+			// Used in : Explore page.
+			VAR _all = 1 - [Fully Funded Loan %]
+			VAR _dark = [Is Dark Mode]
+			VAR _secs = TOPN(15, ADDCOLUMNS(FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Total Loans])), "@n", [Total Loans]), [@n], DESC)
+			VAR _regs = ADDCOLUMNS(FILTER(VALUES('Countries'[World Region]), NOT ISBLANK([Total Loans]) && 'Countries'[World Region] <> "Not classified"), "@n", [Total Loans])
+			VAR _head =
+			    CONCATENATEX(_secs, "<th>" & 'Loans'[sector] & "</th>", "", [@n], DESC)
+			VAR _rows =
+			    CONCATENATEX(
+			        _regs,
+			        VAR _rg = 'Countries'[World Region]
+			        VAR _ri = RANKX(_regs, [@n], , DESC, Skip)
+			        RETURN
+			            "<tr class='fu' style='animation-delay:" & FORMAT(0.1 + _ri * 0.06, "0.00") & "s'><td class='rl'>" & SUBSTITUTE(SUBSTITUTE(_rg, " and the ", " & "), " and ", " & ") & "</td>"
+			                & CONCATENATEX(
+			                    _secs,
+			                    VAR _sc = 'Loans'[sector]
+			                    VAR _n = CALCULATE([Total Loans], 'Countries'[World Region] = _rg, 'Loans'[sector] = _sc)
+			                    VAR _u = 1 - CALCULATE([Fully Funded Loan %], 'Countries'[World Region] = _rg, 'Loans'[sector] = _sc)
+			                    VAR _q = DIVIDE(_u, _all)
+			                    VAR _cls = SWITCH(TRUE(), _n < 30 || ISBLANK(_n), "na", _q < 0.5, "g2", _q < 0.9, "g1", _q <= 1.1, "n0", _q < 2, "b1", "b2")
+			                    RETURN "<td class='c " & _cls & "'>" & IF(_cls = "na", "", FORMAT(_u, "0%")) & "</td>",
+			                    "",
+			                    [@n], DESC
+			                )
+			                & "</tr>",
+			        "",
+			        [@n], DESC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".hm{height:288px;padding:12px 14px 10px;display:flex;flex-direction:column;overflow:hidden;}"
+			        & ".hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}"
+			        & ".ti{font-size:15px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".st{font-size:11px;color:var(--muted);}"
+			        & ".st b{color:var(--text);font-weight:600;}"
+			        & ".lg{display:flex;gap:3px;align-items:center;font-size:10px;color:var(--muted);white-space:nowrap;padding-top:3px;}"
+			        & ".lg i{display:inline-block;width:22px;height:10px;border-radius:2px;}"
+			        & "table{width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed;margin-top:6px;flex:1;}"
+			        & "th{font-size:9.5px;color:var(--muted);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-bottom:2px;}"
+			        & "th.rh{width:150px;}"
+			        & ".rl{font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:6px;}"
+			        & ".c{text-align:center;font-size:10px;border-radius:4px;color:var(--text);}"
+			        & IF(_dark,
+			            ".g2{background:#17735E;}.g1{background:#0F4D40;}.n0{background:#0B2E2A;}.b1{background:#5A2A30;}.b2{background:#9C3A40;}.na{background:transparent;border:1px dashed var(--grid);}",
+			            ".g2{background:#BFE3D6;}.g1{background:#DDEFE8;}.n0{background:#F1F4F3;}.b1{background:#F4CFCB;}.b2{background:#E3868C;}.na{background:transparent;border:1px dashed var(--grid);}")
+			        & "</style>"
+			        & "<div class='k'><div class='hm card'>"
+			        & "<div class='hd fu d1'><div><div class='ti'>Where loans go unfunded: region &times; sector</div>"
+			        & "<div class='st'>Share of loans not fully funded (overall <b>" & FORMAT(_all, "0.0%") & "</b>). Empty = fewer than 30 loans.</div></div>"
+			        & "<div class='lg'><span>below avg</span><i class='g2'></i><i class='g1'></i><i class='n0'></i><i class='b1'></i><i class='b2'></i><span>above avg</span></div></div>"
+			        & "<table><tr><th class='rh'></th>" & _head & "</tr>" & _rows & "</table></div></div>"
+		displayFolder: HTML
+		lineageTag: bede6192-7a94-4a51-9f13-15c09d72c631
 
 	/// Placeholder so the table has a column; not used.
 	column Placeholder

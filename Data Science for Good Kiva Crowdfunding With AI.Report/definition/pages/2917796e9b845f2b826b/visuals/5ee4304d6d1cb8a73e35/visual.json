@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "5ee4304d6d1cb8a73e35",
   "position": {
     "x": 8,
@@ -11,31 +11,8 @@
   },
   "visual": {
     "visualType": "advancedSlicerVisual",
-    "syncGroup": {
-      "groupName": "SyncThemeMode",
-      "fieldChanges": true,
-      "filterChanges": true
-    },
     "query": {
       "queryState": {
-        "Values": {
-          "projections": [
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Theme Mode"
-                    }
-                  },
-                  "Property": "Mode"
-                }
-              },
-              "queryRef": "Theme Mode.Mode",
-              "nativeQueryRef": "Mode"
-            }
-          ]
-        },
         "Label": {
           "projections": [
             {
@@ -51,6 +28,24 @@
               },
               "queryRef": "_Measures.Theme Mode Icon",
               "nativeQueryRef": "Theme Mode Icon"
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Theme Mode"
+                    }
+                  },
+                  "Property": "Mode"
+                }
+              },
+              "queryRef": "Theme Mode.Mode",
+              "nativeQueryRef": "Mode"
             }
           ]
         }
@@ -450,6 +445,56 @@
                           ]
                         ]
                       }
+                    },
+                    "Annotations": {
+                      "filterExpressionMetadata": {
+                        "expressions": [
+                          {
+                            "Column": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Entity": "Theme Mode"
+                                }
+                              },
+                              "Property": "Mode"
+                            }
+                          }
+                        ],
+                        "decomposedIdentities": {
+                          "values": [
+                            [
+                              {
+                                "0": [
+                                  {
+                                    "Literal": {
+                                      "Value": "'Light'"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          ],
+                          "columns": [
+                            {
+                              "value": {
+                                "Column": {
+                                  "Expression": {
+                                    "SourceRef": {
+                                      "Entity": "Theme Mode"
+                                    }
+                                  },
+                                  "Property": "Mode"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "valueMap": [
+                          {
+                            "0": "Light"
+                          }
+                        ]
+                      }
                     }
                   }
                 ]
@@ -572,6 +617,11 @@
           }
         }
       ]
+    },
+    "syncGroup": {
+      "groupName": "SyncThemeMode",
+      "fieldChanges": true,
+      "filterChanges": true
     }
   }
 }

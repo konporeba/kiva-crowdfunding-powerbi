@@ -5,27 +5,6 @@
   "displayOption": "FitToPage",
   "height": 720,
   "width": 1280,
-  "objects": {
-    "outspace": [
-      {
-        "properties": {
-          "color": {
-            "solid": {
-              "color": {
-                "expr": {
-                  "Literal": {
-                    "Value": "'#F1F7F6'"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    ]
-  },
-  "visibility": "HiddenInViewMode",
-  "type": "Drillthrough",
   "filterConfig": {
     "filters": [
       {
@@ -41,6 +20,45 @@
           }
         },
         "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "c",
+              "Entity": "Countries",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "c"
+                          }
+                        },
+                        "Property": "Country"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Paraguay'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
         "howCreated": "Drillthrough"
       }
     ]
@@ -63,6 +81,28 @@
           }
         }
       }
+    ],
+    "acceptsFilterContext": "None"
+  },
+  "objects": {
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F1F7F6'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     ]
-  }
+  },
+  "visibility": "HiddenInViewMode",
+  "type": "Drillthrough"
 }

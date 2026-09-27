@@ -1,0 +1,7 @@
+# Normalise text line endings in the repo (LF). Power BI Desktop saves PBIR/TMDL with CRLF while
+# the _build generator writes LF; without this every save shows up as a whole-file diff.
+* text=auto
+*.png binary
+*.jpg binary
+*.svg text
+*.abf binary

@@ -6,15 +6,17 @@ visual. This file is the single source of truth for progress and plan — read
 it fully before doing anything else in this project, and keep it updated after
 every phase (don't wait to be asked).
 
-## Current state (2026-09-27, end of session)
+## Current state (2026-09-27, evening)
 
-- **Phases 0–3 done.** All 11 pages are built, the report is redesigned to the user's green
-  role-based palette with 8px corners and a filter drawer, and everything is committed
-  and pushed: latest commit `31ff54a` ("Redesign: green role-based palette, 8px corners
-  and filter drawer") on `main` at https://github.com/konporeba/kiva-crowdfunding-powerbi.
-- The user approved the redesign and asked for the push; the working tree was clean after it.
-- Model: 11 tables, **69 measures** (0 errors). Report: 11 pages, validator 0 errors.
-- **Next:** wait for the user's click-test feedback / polish requests (see "Open items").
+- **Phases 0–3 done**, plus a polish round on 2026-09-27: Home loan journey, Sectors metric
+  lens (vs-average lollipop, mosaic, leaderboard), Borrowers (waffle, dot plot, ring grid),
+  Partners (theme mix, rural list), and **every native chart converted to animated HTML** except
+  the two Azure maps and the controls. Explore = funding drivers + heatmap (HTML).
+- Committed and pushed to `main` at https://github.com/konporeba/kiva-crowdfunding-powerbi
+  (`.gitattributes` added to normalise line endings: repo stores LF, so Desktop's CRLF saves and
+  the generator's LF output no longer show as whole-file diffs).
+- Model: 11 tables, **95 measures** (0 errors). Report: 11 pages, validator 0 errors.
+- **Next:** user click-test (esp. drill-through to Country Profile in dark mode), polish requests.
 
 ## Project location & format
 
@@ -73,6 +75,11 @@ every phase (don't wait to be asked).
   measures, DAX calculated tables, relationships, column properties and partition updates.
 - For bulk mechanical model edits (recolour, radius) a script over `_Measures.tmdl` +
   user "Apply" is more reliable than retyping many long measures through MCP.
+- After a model change, Desktop keeps showing CACHED visual results (`reload`, Apply and engine
+  ClearCache do not help). The cache is keyed by query + filter state, so the Light/Dark trick
+  (`KIVA_MODE=Dark node gen.js` + reload) only works once per change. Reliable options: close
+  WITHOUT saving and reopen, rename the bound measure, or verify the measure output with a DAX
+  query (INFO.MEASURES / EVALUATE) instead of a screenshot.
 - Before reloading the report, `powerbi-desktop status` may show `hasUnsavedChanges: true`
   from MCP edits; that is expected once the model is synced to disk.
 
@@ -119,16 +126,16 @@ Rounded shapes need the container VCO border radius (shape corner settings are i
 
 | Page | ID | Contents |
 |---|---|---|
-| Home | 7a60e10f702b7c1a7f4b | HTML hero (stats, year strip, funded ring, 6 section cards + transparent nav buttons) |
-| Overview | 2917796e9b845f2b826b | KPI strip w/ sparklines, monthly area chart, funding rings, Azure map, top sectors, insight |
-| Geography & Poverty | 93fef5260e7b9413a4f4 | KPI strip + MPI-band bar, map, MPI vs amount scatter, country matrix w/ data bars |
-| Sectors & Activities | 1c531d8653ea2cf54979 | Sector Metric switcher (field param), sector bars, sector→activity treemap, leaderboard |
-| Borrowers & Gender | c598cfc5b25974831cae | Gender impact panel, borrower make-up, women % by sector/region, repayment donut |
-| Funding Dynamics | 299b716bc6ffe238f627 | KPI strip, days-to-fund histogram, speed by sector, lenders vs loan size (per sector) |
-| Partners & Themes | 765aff8d7c4207a64a55 | KPI strip, top-10 partner leaderboard, top-10 themes (TopN filter), rural % by sector |
-| Explore | d8a08f3baef264eb2e6d | Decomposition tree + key influencers (target: is_fully_funded) |
+| Home | 7a60e10f702b7c1a7f4b | HTML hero (stats, year strip, 6 section cards + transparent nav buttons) + `HTML Loan Journey` panel (life of a typical loan: 5 milestones + funded-vs-gap bar) |
+| Overview | 2917796e9b845f2b826b | KPI strip w/ sparklines, `HTML Monthly Trend` (SVG requested vs funded, gap shaded), funding rings, Azure map (native), top sectors, insight |
+| Geography & Poverty | 93fef5260e7b9413a4f4 | KPI strip + MPI-band bar, Azure map (native), `HTML MPI Scatter` (log-y SVG, 0.25 threshold), `HTML Country Ranking` (scrollable, MPI badges) |
+| Sectors & Activities | 1c531d8653ea2cf54979 | Sector Metric switcher (field param) drives all 3 visuals via `[Selected Sector Metric]`: `HTML Sector Vs Average` (vs-average lollipop, 580x540; renamed from HTML Sector Ranking to bust Desktop's visual cache), treemap of sectors (size = amount, fill fx `Sector Metric Color`, subtitle `Sector Treemap Subtitle`; activity level dropped), `HTML Sector Leaderboard` (top 6 by metric) |
+| Borrowers & Gender | c598cfc5b25974831cae | Gender impact panel; `HTML Borrower Makeup` (10x10 waffle by group type + outcomes table); `HTML Women By Sector` (dot plot, dashed overall line, hollow dots below overall); `HTML Women By Region` (2x3 ring grid, "Not classified" as footnote); repayment donut |
+| Funding Dynamics | 299b716bc6ffe238f627 | KPI strip, `HTML Fund Time Histogram`, `HTML Speed By Sector` (vs overall median, <=7d share), `HTML Lenders Scatter` (OLS trend + slope callout) |
+| Partners & Themes | 765aff8d7c4207a64a55 | KPI strip, top-10 partner leaderboard, `HTML Theme Mix` (100% strip: leading theme + next 5 + other + hatched no-theme, list of next 5), `HTML Rural By Sector` (all 11 Themes By Region sectors, above/below overall, dashed overall line, small-sample tag < $100K) |
+| Explore | d8a08f3baef264eb2e6d | `HTML Funding Drivers` (5 factor cards: riskiest vs safest unfunded rate) + `HTML Funding Heatmap` (region x sector unfunded rate). Replaced the AI visuals at the user's request. |
 | About | cd89af5befbffa736945 | Source, metric definitions, data notes, last refresh |
-| Country Profile | hid('page:country') | Drill-through on Countries[Country], hidden, Back button |
+| Country Profile | hid('page:country') | Drill-through on Countries[Country], hidden, Back button; `HTML Country Trend` / `Country Sectors` / `Country Makeup` |
 | Country Tooltip | hid('page:tooltip') | 320×200 report-page tooltip for maps + MPI scatter |
 
 **Chrome on every page:** full-page bg shape (fx `Color Page`); 64px rail (logo, menu,
@@ -174,8 +181,19 @@ Sector list — synced groups SyncYear/SyncWorldRegion/SyncCountry/SyncSector. N
 - Filter-pane theme styles (`outspacePane`/`filterCard`) go under
   `visualStyles.page["*"]`. Projection `displayName` renames legend/axis labels.
 - Keep every HTML root ≥4px shorter than its visual or a scrollbar appears.
+- Drill-through page: `pageBinding.acceptsFilterContext: 'None'` (= Keep all filters OFF). With it on,
+  the source page's Theme Mode selection is passed in and clashes with the page's synced toggle, so
+  the Country Profile stayed Light. Trade-off: Year/Region/Sector filters are not carried either.
+- Theme toggle moon glyph (U+263E) is left-heavy in Segoe UI; `Theme Mode Icon` prefixes a hair
+  space (U+200A) to centre it under the sun.
 - HTML Content sanitizer: allows `<style>`, `@keyframes`, `@media`, inline SVG; strips
   scripts, `@import`, `@font-face` → system fonts only; the visual cannot navigate pages.
+- Field parameters: `SELECTEDVALUE('Sector Metric'[Sector Metric])` errors ("part of composite
+  key") → read `[Sector Metric Order]` and map it back (see `Selected Sector Metric`).
+  In DAX queries filter on the order column too.
+- Treemap fill can be measure-driven (`dataPoint.fill` = fx measure, `dataViewWildcard
+  {matchingOption:1}` selector) ONLY without a Details field — with Details bound it is
+  ignored and theme colours show. Group allows 1 projection (validator), so no drill.
 - DAX: a blank compared with `>=`/`<` behaves as 0 → always add `NOT ISBLANK(...)`
   (this bug inflated Funded Within 7 Days % to 42.2%; correct value 37.7%).
 
@@ -212,7 +230,29 @@ Sector list — synced groups SyncYear/SyncWorldRegion/SyncCountry/SyncSector. N
   `Active Filter Count`, `Filter Button Label`, all `Color *` role measures, and HTML
   measures: Theme CSS, Home, Overview KPIs/Rings/Insight, Top Sectors, Geography KPIs,
   Sector Leaderboard, Gender Impact, Funding KPIs, Partners KPIs, Partner Leaderboard,
-  About, Country Profile, Country Tooltip, Active Filters.
+  About, Country Profile, Country Tooltip, Active Filters, Loan Journey (replaced the Home
+  funded ring on 2026-09-27 at the user's request; separate 416x412 visual on Home).
+- Sectors & Activities rework (2026-09-27, user chose "vs-average lollipop"): the metric
+  switcher now drives the whole page. New measures in folder `Sector Metric`: Selected
+  Sector Metric, Sector Metric Value, Sector Metric Benchmark (mean per sector for
+  Amount/Loans, all-sector value for ratios), Sector Metric Lower Is Better (Days),
+  Sector Metric Color (5 green shades, min-max per sector, darker = better),
+  Sector Treemap Subtitle; plus `HTML Sector Vs Average`. Leaderboard sorts/bars by the
+  metric and shows the other 3 of Amount/Avg loan/Women/Days as context.
+- Borrowers & Gender rework (2026-09-27): the 3 native bar charts became HTML visuals
+  (user picked waffle + outcomes, gender split bars, person-icon rows); the sector and
+  region charts were then simplified at the user's request ("too many things") to a dot
+  plot and a ring grid.
+- All-HTML conversion (2026-09-27, user request): every native chart became an animated HTML
+  visual EXCEPT the two Azure maps (kept native for zoom/tooltips/filtering, user choice) and the
+  slicers/buttons/shapes. Trade-off accepted by the user: HTML visuals do not cross-filter, drill
+  or show report-page tooltips. Sectors treemap -> `HTML Sector Mosaic` (3 rows by cumulative
+  third of amount, flexbox sizing). Explore pre-disbursal was dropped as a driver: loans that never
+  fund are never disbursed, so is_pre_disbursed leaks the outcome (89.9% "unfunded").
+  Backup before this: `_backup/20260927-181310-pre-html-all`.
+- Partners & Themes rework (2026-09-27): both native bar charts became HTML (theme mix +
+  rural bar list); the native rural chart could not fit 11 categories without scrolling.
+- Header filter chips moved to y=32 / h=36 so their 32px row centres on the Filters button.
 - Findings surfaced in the report/README: 40% of the amount → low-MPI countries, 14% →
   high/very-high; individual women $593 vs men $899, 8.5 vs 15.6 median days, funded
   94.6% vs 87.1%; all 13,507 partner-less loans are in Kenya; 18–40 month terms → ~3.5×

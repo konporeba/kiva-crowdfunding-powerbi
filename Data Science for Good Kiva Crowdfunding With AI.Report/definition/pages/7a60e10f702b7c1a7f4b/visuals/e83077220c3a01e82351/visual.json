@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
-  "name": "807b5fee44b97685c825",
+  "name": "e83077220c3a01e82351",
   "position": {
-    "x": 642,
-    "y": 32,
-    "z": 1080,
-    "height": 36,
-    "width": 470,
-    "tabOrder": 1080
+    "x": 848,
+    "y": 34,
+    "z": 2200,
+    "height": 412,
+    "width": 416,
+    "tabOrder": 2200
   },
   "visual": {
     "visualType": "htmlContent443BE3AD55E043BF878BED274D3A6855",
@@ -23,11 +23,11 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "HTML Active Filters"
+                  "Property": "HTML Loan Journey"
                 }
               },
-              "queryRef": "_Measures.HTML Active Filters",
-              "nativeQueryRef": "HTML Active Filters"
+              "queryRef": "_Measures.HTML Loan Journey",
+              "nativeQueryRef": "HTML Loan Journey"
             }
           ]
         }

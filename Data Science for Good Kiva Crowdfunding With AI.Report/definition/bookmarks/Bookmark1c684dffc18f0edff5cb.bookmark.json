@@ -3,15 +3,15 @@
   "displayName": "Nav Close - Partners & Themes",
   "name": "Bookmark1c684dffc18f0edff5cb",
   "options": {
+    "applyOnlyToTargetVisuals": true,
     "targetVisualNames": [
       "96ba992ba1ca517a7450"
     ],
-    "applyOnlyToTargetVisuals": true,
-    "suppressData": true,
-    "suppressActiveSection": true
+    "suppressActiveSection": true,
+    "suppressData": true
   },
   "explorationState": {
-    "version": "1.3",
+    "version": "1.0",
     "activeSection": "765aff8d7c4207a64a55",
     "sections": {
       "765aff8d7c4207a64a55": {

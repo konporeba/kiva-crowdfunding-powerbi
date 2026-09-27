@@ -3,7 +3,7 @@
 A portfolio Power BI report on **671,205 Kiva microloans (2014–2017) across 87 countries**:
 who borrows, what the money pays for, how fast lenders respond, and whether funding
 reaches the world's poorest regions. It combines a star-schema semantic model and
-documented DAX with native visuals and animated **HTML Content** visuals. It also has a
+documented DAX with animated **HTML Content** visuals for every chart (plus native Azure maps). It also has a
 collapsible navigation rail and a **light/dark mode toggle**.
 
 The report is saved as a **PBIP project** (TMDL semantic model + PBIR report JSON), so
@@ -22,7 +22,7 @@ Modeling MCP server and the PBIR authoring CLIs.
   `Countries`, `Field Partners` and `Date` dimensions. `MPI Regions` and
   `Themes By Region` hang off the same dimensions. All relationships are 1:many and
   single-direction.
-- **69 documented measures** in a `_Measures` table, each with a
+- **95 documented measures** in a `_Measures` table, each with a
   *Purpose / Logic / Used in* comment header, a description, a format string and a
   display folder: lending volume, funding gap, gender, funding speed, poverty (MPI)
   coverage, partners and themes.
@@ -64,11 +64,11 @@ toggle only swaps the values.
 | **Home** | Landing page: animated stats, year-by-year volume, funded ring, section cards |
 | **Overview** | KPI strip with sparklines, monthly requested vs funded, funding rings, map, top sectors, auto-generated insight |
 | **Geography & Poverty** | High-poverty share, loan-weighted MPI, MPI coverage, loan amount by MPI band, map, MPI vs lending scatter, country ranking |
-| **Sectors & Activities** | Metric switcher (field parameter) driving a sector ranking, sector-to-activity treemap, sector leaderboard |
-| **Borrowers & Gender** | "4 in 5 borrowers are women" panel, individual women vs men comparison, borrower make-up, women's share by sector and region, repayment interval |
+| **Sectors & Activities** | Metric switcher (amount, loans, avg loan, women, days, funded) that drives the whole page: a vs-average lollipop ranking of all 15 sectors, a treemap coloured by the metric and a leaderboard sorted by it |
+| **Borrowers & Gender** | "4 in 5 borrowers are women" panel, individual women vs men comparison, borrower make-up waffle with outcomes per group, women's share by sector (dot plot) and by world region (ring grid), repayment interval |
 | **Funding Dynamics** | Days-to-fund histogram, funding speed by sector, pre-disbursal, lenders per loan |
-| **Partners & Themes** | Top field partners, top loan theme types, rural reach by sector |
-| **Explore** | Decomposition tree and key influencers (what drives full funding) |
+| **Partners & Themes** | KPI strip, top field partners, loan theme mix (how dominant "General" is and which themes come next), rural reach by sector |
+| **Explore** | What stops a loan from being fully funded: driver cards (loan term, borrower group, repayment, region, sector) and a region x sector heatmap of unfunded rates |
 | **About** | Data source, metric definitions, data notes and last refresh time |
 | **Country Profile** | Drill-through: profile card, monthly trend, sectors, borrower make-up |
 | **Country Tooltip** | Report-page tooltip card used by the maps and the MPI scatter |

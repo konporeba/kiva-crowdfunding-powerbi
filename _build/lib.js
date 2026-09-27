@@ -40,7 +40,7 @@ const imageRef = (fileName) => ({
 });
 
 // Container chrome for native "card" visuals: every colour follows the theme toggle.
-const cardVCO = ({ title, subtitle, padding = 12, showTitle = true } = {}) => {
+const cardVCO = ({ title, subtitle, subtitleMeasure, padding = 12, showTitle = true } = {}) => {
   const vco = {
     background: [props({ show: Lb(true), color: fillM('Color Card'), transparency: Ld(0) })],
     border: [props({ show: Lb(true), color: fillM('Color Border'), radius: Ld(8), width: Ld(1) })],
@@ -51,7 +51,7 @@ const cardVCO = ({ title, subtitle, padding = 12, showTitle = true } = {}) => {
       ? { show: Lb(true), text: Ls(title), fontColor: fillM('Color Text'), fontSize: Ld(12), fontFamily: Ls('Segoe UI Semibold') }
       : { show: Lb(false) })]
   };
-  vco.subTitle = [props(subtitle ? { show: Lb(true), text: Ls(subtitle), fontColor: fillM('Color Text Muted'), fontSize: Ld(9) } : { show: Lb(false) })];
+  vco.subTitle = [props(subtitle || subtitleMeasure ? { show: Lb(true), text: subtitleMeasure ? { expr: measureField(subtitleMeasure) } : Ls(subtitle), fontColor: fillM('Color Text Muted'), fontSize: Ld(9) } : { show: Lb(false) })];
   return vco;
 };
 

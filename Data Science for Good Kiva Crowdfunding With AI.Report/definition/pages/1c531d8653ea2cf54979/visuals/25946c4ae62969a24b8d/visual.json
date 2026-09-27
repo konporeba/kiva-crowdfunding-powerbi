@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "25946c4ae62969a24b8d",
   "position": {
     "x": 12,
@@ -11,11 +11,6 @@
   },
   "visual": {
     "visualType": "slicer",
-    "syncGroup": {
-      "groupName": "SyncWorldRegion",
-      "fieldChanges": true,
-      "filterChanges": true
-    },
     "query": {
       "queryState": {
         "Values": {
@@ -32,7 +27,8 @@
                 }
               },
               "queryRef": "Countries.World Region",
-              "nativeQueryRef": "World Region"
+              "nativeQueryRef": "World Region",
+              "active": true
             }
           ]
         }
@@ -282,6 +278,11 @@
           }
         }
       ]
+    },
+    "syncGroup": {
+      "groupName": "SyncWorldRegion",
+      "fieldChanges": true,
+      "filterChanges": true
     }
   },
   "parentGroupName": "3b0123eb6d10ade6659f"
