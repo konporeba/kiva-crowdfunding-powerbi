@@ -3,15 +3,15 @@
   "displayName": "Nav Open - Borrowers & Gender",
   "name": "Bookmarkb290bf8556e489514132",
   "options": {
-    "applyOnlyToTargetVisuals": true,
     "targetVisualNames": [
       "e4421f487f1d082425d2"
     ],
-    "suppressActiveSection": true,
-    "suppressData": true
+    "applyOnlyToTargetVisuals": true,
+    "suppressData": true,
+    "suppressActiveSection": true
   },
   "explorationState": {
-    "version": "1.0",
+    "version": "1.3",
     "activeSection": "c598cfc5b25974831cae",
     "sections": {
       "c598cfc5b25974831cae": {

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
   "name": "efd67b6f3fbf832bddb7",
   "position": {
     "x": 88,
@@ -28,7 +28,6 @@
               },
               "queryRef": "Sector Metric.Sector Metric",
               "nativeQueryRef": "Sector Metric",
-              "active": true,
               "displayName": "Metric"
             }
           ]
@@ -163,7 +162,7 @@
                 "Version": 2,
                 "From": [
                   {
-                    "Name": "s",
+                    "Name": "p",
                     "Entity": "Sector Metric",
                     "Type": 0
                   }
@@ -177,10 +176,10 @@
                             "Column": {
                               "Expression": {
                                 "SourceRef": {
-                                  "Source": "s"
+                                  "Source": "p"
                                 }
                               },
-                              "Property": "Sector Metric Fields"
+                              "Property": "Sector Metric"
                             }
                           }
                         ],
@@ -188,60 +187,10 @@
                           [
                             {
                               "Literal": {
-                                "Value": "'''_Measures''[Total Loan Amount]'"
+                                "Value": "'Amount'"
                               }
                             }
                           ]
-                        ]
-                      }
-                    },
-                    "Annotations": {
-                      "filterExpressionMetadata": {
-                        "expressions": [
-                          {
-                            "Column": {
-                              "Expression": {
-                                "SourceRef": {
-                                  "Entity": "Sector Metric"
-                                }
-                              },
-                              "Property": "Sector Metric"
-                            }
-                          }
-                        ],
-                        "decomposedIdentities": {
-                          "values": [
-                            [
-                              {
-                                "0": [
-                                  {
-                                    "Literal": {
-                                      "Value": "'''_Measures''[Total Loan Amount]'"
-                                    }
-                                  }
-                                ]
-                              }
-                            ]
-                          ],
-                          "columns": [
-                            {
-                              "value": {
-                                "Column": {
-                                  "Expression": {
-                                    "SourceRef": {
-                                      "Entity": "Sector Metric"
-                                    }
-                                  },
-                                  "Property": "Sector Metric Fields"
-                                }
-                              }
-                            }
-                          ]
-                        },
-                        "valueMap": [
-                          {
-                            "0": "Amount"
-                          }
                         ]
                       }
                     }

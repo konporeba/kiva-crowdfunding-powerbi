@@ -71,13 +71,14 @@ toggle only swaps the values.
 | **Explore** | What stops a loan from being fully funded: driver cards (loan term, borrower group, repayment, region, sector) and a region x sector heatmap of unfunded rates |
 | **About** | Data source, metric definitions, data notes and last refresh time |
 | **Country Profile** | Drill-through: profile card, monthly trend, sectors, borrower make-up |
-| **Country Tooltip** | Report-page tooltip card used by the maps and the MPI scatter |
+| **Country Tooltip** | Report-page tooltip card shown when hovering a country on the maps |
 
 | | |
 |---|---|
 | ![Geography & Poverty](docs/screenshots/geography.png) | ![Sectors & Activities](docs/screenshots/sectors.png) |
 | ![Borrowers & Gender](docs/screenshots/borrowers.png) | ![Funding Dynamics](docs/screenshots/funding.png) |
-| ![Partners & Themes](docs/screenshots/partners.png) | ![About](docs/screenshots/about.png) |
+| ![Partners & Themes](docs/screenshots/partners.png) | ![Explore](docs/screenshots/explore.png) |
+| ![About](docs/screenshots/about.png) | |
 
 ## Selected findings
 

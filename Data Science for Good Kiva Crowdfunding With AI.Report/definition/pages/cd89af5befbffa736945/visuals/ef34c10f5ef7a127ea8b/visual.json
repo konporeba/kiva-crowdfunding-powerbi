@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
   "name": "ef34c10f5ef7a127ea8b",
   "position": {
     "x": 8,
@@ -11,26 +11,13 @@
   },
   "visual": {
     "visualType": "advancedSlicerVisual",
+    "syncGroup": {
+      "groupName": "SyncThemeMode",
+      "fieldChanges": true,
+      "filterChanges": true
+    },
     "query": {
       "queryState": {
-        "Label": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Measures"
-                    }
-                  },
-                  "Property": "Theme Mode Icon"
-                }
-              },
-              "queryRef": "_Measures.Theme Mode Icon",
-              "nativeQueryRef": "Theme Mode Icon"
-            }
-          ]
-        },
         "Values": {
           "projections": [
             {
@@ -46,6 +33,24 @@
               },
               "queryRef": "Theme Mode.Mode",
               "nativeQueryRef": "Mode"
+            }
+          ]
+        },
+        "Label": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Theme Mode Icon"
+                }
+              },
+              "queryRef": "_Measures.Theme Mode Icon",
+              "nativeQueryRef": "Theme Mode Icon"
             }
           ]
         }
@@ -445,56 +450,6 @@
                           ]
                         ]
                       }
-                    },
-                    "Annotations": {
-                      "filterExpressionMetadata": {
-                        "expressions": [
-                          {
-                            "Column": {
-                              "Expression": {
-                                "SourceRef": {
-                                  "Entity": "Theme Mode"
-                                }
-                              },
-                              "Property": "Mode"
-                            }
-                          }
-                        ],
-                        "decomposedIdentities": {
-                          "values": [
-                            [
-                              {
-                                "0": [
-                                  {
-                                    "Literal": {
-                                      "Value": "'Light'"
-                                    }
-                                  }
-                                ]
-                              }
-                            ]
-                          ],
-                          "columns": [
-                            {
-                              "value": {
-                                "Column": {
-                                  "Expression": {
-                                    "SourceRef": {
-                                      "Entity": "Theme Mode"
-                                    }
-                                  },
-                                  "Property": "Mode"
-                                }
-                              }
-                            }
-                          ]
-                        },
-                        "valueMap": [
-                          {
-                            "0": "Light"
-                          }
-                        ]
-                      }
                     }
                   }
                 ]
@@ -617,11 +572,6 @@
           }
         }
       ]
-    },
-    "syncGroup": {
-      "groupName": "SyncThemeMode",
-      "fieldChanges": true,
-      "filterChanges": true
     }
   }
 }

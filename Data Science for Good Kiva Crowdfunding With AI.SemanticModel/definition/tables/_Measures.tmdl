@@ -2257,13 +2257,13 @@ table _Measures
 		displayFolder: HTML
 		lineageTag: c122fa7b-f3d4-495f-8629-238279dfe9a2
 
-	/// Geography scatter (604x228): one bubble per country with an MPI score, x = average regional MPI, y = loan amount on a log scale, bubble area = number of loans; dashed line at the MPI 0.25 high-poverty threshold; labels on the largest country on each side of the threshold and the poorest country. Bubbles pop in on load.
+	/// Geography scatter (604x228): one bubble per country with an MPI score, x = average regional MPI, y = loan amount on a log scale, bubble area = number of loans; dashed line at the MPI 0.25 high-poverty threshold; labels on the largest country on each side of the threshold and the poorest country (placed left of the bubble near the right edge). Bubbles pop in on load.
 	measure 'HTML MPI Scatter' =
 			// Purpose : Does lending follow poverty? Country MPI against amount lent.
 			// Logic   : Countries with a non-blank [Average Regional MPI] and loans. y uses log10 because
 			//           amounts span three orders of magnitude; radius = sqrt(loans / max loans) x 13 + 2.5.
 			//           Bubbles right of the 0.25 threshold (high poverty) use the accent, others the
-			//           secondary series colour.
+			//           secondary series colour. Labels near the right edge are anchored to the left.
 			// Used in : Geography & Poverty page.
 			VAR _W = 576
 			VAR _H = 164
@@ -2321,7 +2321,9 @@ table _Measures
 			VAR _lab =
 			    CONCATENATEX(
 			        FILTER(_p, [@amt] = MAXX(FILTER(_p, [@mpi] < 0.25), [@amt]) || [@amt] = MAXX(FILTER(_p, [@mpi] >= 0.25), [@amt]) || [@mpi] = MAXX(_p, [@mpi])),
-			        "<text class='bl' x='" & FORMAT([@x] + [@r] + 3, "0.0") & "' y='" & FORMAT([@y] + 3, "0.0") & "'>" & 'Countries'[Country] & "</text>",
+			        IF([@x] > _W - 110,
+			            "<text class='bl' text-anchor='end' x='" & FORMAT([@x] - [@r] - 3, "0.0") & "' y='" & FORMAT([@y] + 3, "0.0") & "'>" & 'Countries'[Country] & "</text>",
+			            "<text class='bl' x='" & FORMAT([@x] + [@r] + 3, "0.0") & "' y='" & FORMAT([@y] + 3, "0.0") & "'>" & 'Countries'[Country] & "</text>"),
 			        ""
 			    )
 			RETURN

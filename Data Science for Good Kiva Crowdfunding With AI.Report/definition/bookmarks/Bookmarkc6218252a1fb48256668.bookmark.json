@@ -3,15 +3,15 @@
   "displayName": "Nav Open - Overview",
   "name": "Bookmarkc6218252a1fb48256668",
   "options": {
-    "applyOnlyToTargetVisuals": true,
     "targetVisualNames": [
       "aa63cc868e135ad6858d"
     ],
-    "suppressActiveSection": true,
-    "suppressData": true
+    "applyOnlyToTargetVisuals": true,
+    "suppressData": true,
+    "suppressActiveSection": true
   },
   "explorationState": {
-    "version": "1.0",
+    "version": "1.3",
     "activeSection": "2917796e9b845f2b826b",
     "sections": {
       "2917796e9b845f2b826b": {
