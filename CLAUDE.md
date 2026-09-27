@@ -58,26 +58,52 @@ every phase (don't wait to be asked).
   `report.json` → `publicCustomVisuals: ["htmlContent443BE3AD55E043BF878BED274D3A6855"]`.
   Confirmed present — don't re-check unless something seems off.
 
-## Design system (exact hexes — do not alter)
+## Design system — green role-based palette (user redesign, 2026-09-27)
 
-| Token | Hex | Primary use |
+**Supersedes the original navy/cerulean brief palette** (the user asked for a full
+restyle). Every element is designed once by ROLE; light/dark only swap values.
+
+| Role | Light (default) | Dark |
 |---|---|---|
-| `--punch-red` | `#E63946` | Negative/alert signals, funding gap **only** (see decision below) |
-| `--honeydew` | `#F1FAEE` | Page background, light text on dark cards |
-| `--frosted-blue` | `#A8DADC` | Secondary series, soft fills, borders, hover states |
-| `--cerulean` | `#457B9D` | Primary data series, icons, secondary headings, **call-to-action / interactive affordances** |
-| `--oxford-navy` | `#1D3557` | Header bars, navigation, titles, dark cards, primary text |
+| Page background | Anti-Flash White `#F1F7F6` | Rich Black `#021B1A` |
+| Card / visual background | White `#FFFFFF` | Dark Green `#032221` |
+| Header bar / elevated panel (nav rail, drawer, hero cards) | Bangladesh Green `#03624C` | Pine `#06302B` |
+| Primary text | Rich Black `#021B1A` | Anti-Flash White `#F1F7F6` |
+| Secondary text (labels, axes) | Stone `#707D7D` (small HTML body text `#5C6868`) | Pistachio `#AACBC4` |
+| Borders & gridlines | Pistachio `#AACBC4` | Basil `#0B453A` |
+| Accent (slicers, selected, links) | Bangladesh Green `#03624C` | Caribbean Green `#00DF81` |
+| Hover / secondary accent | Frog `#17876D` | Mountain Meadow `#2CC295` |
+| Series order | `#03624C → #2CC295 → #707D7D → #06302B → #AACBC4 → #17876D` | `#2CC295 → #AACBC4 → #00DF81 → #17876D → #707D7D → #F1F7F6` |
+| Good / Warning* / Bad* | `#17876D` / `#D99A1E` / `#C8414B` | `#00DF81` / `#F2C14E` / `#FF6B6B` |
 
-**Decision made (flagged to user, not contradicted):** the brief assigns
-`#E63946` to both "alerts/funding gap" and "call-to-action," which would make
-negative-signal red indistinguishable from clickable red. Resolved by
-reserving `#E63946` for negative/gap signals only, and using `#457B9D` for
-interactive affordances/CTAs. All five hexes are still used exactly as given
-— only the semantic assignment of the two overlapping uses was split. Revisit
-only if the user objects.
+Rules: `#00DF81` only as a FILL in light mode (never text/thin lines on white).
+The funding gap uses **Bad**. Implementation lives in: `Color *` measures (incl.
+Color Accent, Hover, Nav Active, Good, Warning, Bad), `HTML Theme CSS` tokens
+(`--hero1/--hero2/--onhero/--onhero2/--onheroaccent/--heroline/--herofill/
+--badsoft` for elevated green panels), `_build/write-theme.js` (light tokens +
+SERIES) and generator literals. The recolour was applied by
+`_build/recolor-model.js` + `_build/recolor-report.js` (idempotent).
+Use 6-digit hex everywhere.
 
-Use 6-digit hex everywhere (theme JSON and HTML) — the brief's `ff` alpha
-suffix is dropped.
+**Corner radius:** 8px everywhere (theme, `cardVCO`, buttons, tiles, HTML
+containers via `_build/radius-model.js`). HTML: `HTML Theme CSS` defines
+`--radius:8px` and enforces it with `!important` on `.card,.ringcard,.ins,.cp,
+.tt,.fact,.kp,.ni,.badge` (each measure's own <style> comes later, so a plain rule
+would lose) — change the radius in ONE place there. Rounded shapes: use the container
+VCO border radius — shape `tileShape` corner settings are ignored, and shape
+`fill.show:false` is ignored too (use transparency 100).
+
+**Filters (user-chosen design, 2026-09-27): filter drawer + chips.** Header right:
+`HTML Active Filters` chips ("Showing all data" or YEAR 2016 · SECTOR …) plus a
+green Filters button whose text is the `Filter Button Label` measure
+("Filters · N", N = `Active Filter Count`). The button opens a right-side drawer
+group (340px, `hid(page:filters)`, hidden by default; Filters Open/Close
+bookmark pair per analysis page) with Year tiles (classic slicer Basic +
+orientation 1), World Region list, Country dropdown and Sector list — all synced
+(groups SyncYear/SyncWorldRegion/SyncCountry/SyncSector). No "clear all" button:
+ClearAllSlicers would also reset the Light/Dark toggle. Test switch:
+`KIVA_FILTERS_OPEN=1 node gen.js`. User said NOT to push to GitHub until they
+approve the redesign.
 
 ## Report requirements (user's answers in place of missing brief sections 4–5, 2026-09-27)
 

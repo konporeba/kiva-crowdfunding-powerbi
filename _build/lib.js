@@ -43,7 +43,7 @@ const imageRef = (fileName) => ({
 const cardVCO = ({ title, subtitle, padding = 12, showTitle = true } = {}) => {
   const vco = {
     background: [props({ show: Lb(true), color: fillM('Color Card'), transparency: Ld(0) })],
-    border: [props({ show: Lb(true), color: fillM('Color Border'), radius: Ld(12), width: Ld(1) })],
+    border: [props({ show: Lb(true), color: fillM('Color Border'), radius: Ld(8), width: Ld(1) })],
     dropShadow: [props({ show: Lb(false) })],
     padding: [props({ top: Ld(padding), bottom: Ld(padding), left: Ld(padding + 2), right: Ld(padding + 2) })],
     visualHeader: [props({ show: Lb(true), background: fillM('Color Card'), foreground: fillM('Color Text Muted'), border: fillM('Color Card') })],

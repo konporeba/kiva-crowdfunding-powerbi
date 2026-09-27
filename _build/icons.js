@@ -1,6 +1,6 @@
-// Nav-rail icons: 24x24 line icons, stroked in honeydew (#F1FAEE) because the rail
+// Nav-rail icons: 24x24 line icons, stroked in honeydew (#F1F7F6) because the rail
 // is navy in both light and dark mode. Drawn by hand for this report.
-const wrap = (body, color = '#F1FAEE') =>
+const wrap = (body, color = '#F1F7F6') =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
 
 module.exports = {
@@ -14,7 +14,11 @@ module.exports = {
   funding: wrap('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/>'),
   partners: wrap('<path d="M4 21V4"/><path d="M4 4h13l-2.5 4L17 12H4"/>'),
   explore: wrap('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
+  // Filter-bar icon sits on the green header bar (both modes), so it uses the light stroke.
+  filter: wrap('<path d="M4 5h16l-6.2 7.4V18l-3.6 1.8v-7.4z"/>'),
+  // Close icon for the filter drawer, which sits on a card surface: Stone reads on white and dark green.
+  xclose: wrap('<path d="M6 6l12 12"/><path d="M18 6L6 18"/>', '#707D7D'),
   about: wrap('<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.01"/>'),
   // Brand mark: rounded square with a rising-bar glyph.
-  logo: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect x="1" y="1" width="38" height="38" rx="11" fill="#457B9D"/><rect x="10" y="22" width="4.5" height="8" rx="1.5" fill="#F1FAEE"/><rect x="17.75" y="16" width="4.5" height="14" rx="1.5" fill="#F1FAEE"/><rect x="25.5" y="10" width="4.5" height="20" rx="1.5" fill="#A8DADC"/></svg>`
+  logo: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect x="1" y="1" width="38" height="38" rx="11" fill="#17876D"/><rect x="10" y="22" width="4.5" height="8" rx="1.5" fill="#F1F7F6"/><rect x="17.75" y="16" width="4.5" height="14" rx="1.5" fill="#F1F7F6"/><rect x="25.5" y="10" width="4.5" height="20" rx="1.5" fill="#00DF81"/></svg>`
 };

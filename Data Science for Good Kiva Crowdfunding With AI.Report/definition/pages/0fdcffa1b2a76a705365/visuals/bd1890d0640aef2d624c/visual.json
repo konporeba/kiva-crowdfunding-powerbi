@@ -25,7 +25,7 @@
             "roundEdge": {
               "expr": {
                 "Literal": {
-                  "Value": "10L"
+                  "Value": "8L"
                 }
               }
             }
@@ -140,7 +140,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A8DADC'"
+                      "Value": "'#AACBC4'"
                     }
                   }
                 }
@@ -567,7 +567,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A8DADC'"
+                      "Value": "'#AACBC4'"
                     }
                   }
                 }
@@ -631,7 +631,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A8DADC'"
+                      "Value": "'#AACBC4'"
                     }
                   }
                 }
@@ -698,7 +698,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A8DADC'"
+                      "Value": "'#AACBC4'"
                     }
                   }
                 }
@@ -765,7 +765,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A8DADC'"
+                      "Value": "'#AACBC4'"
                     }
                   }
                 }

@@ -9,7 +9,7 @@ module.exports = ({ page, PAGES, L, pos, visualFile, htmlVisual, button, CX }) =
     const target = PAGES.find((p) => p.key === key);
     const x = CX + (i % 3) * 397, y = Y0 + (i < 3 ? 452 : 578);
     out.push(visualFile(page, 'card-link-' + key, pos(x, y, 381, 110),
-      button({ action: { type: 'PageNavigation', page: target.id }, fillHover: L.fillL('#457B9D'), tooltip: 'Open ' + target.name })));
+      button({ action: { type: 'PageNavigation', page: target.id }, fillHover: L.fillL('#03624C'), tooltip: 'Open ' + target.name })));
   });
   // Hover fill on the overlay buttons should be a faint wash, not a solid block.
   for (const v of out.slice(1)) {

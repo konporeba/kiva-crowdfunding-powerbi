@@ -25,7 +25,7 @@
             "roundEdge": {
               "expr": {
                 "Literal": {
-                  "Value": "10L"
+                  "Value": "8L"
                 }
               }
             }
@@ -140,7 +140,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#457B9D'"
+                      "Value": "'#03624C'"
                     }
                   }
                 }

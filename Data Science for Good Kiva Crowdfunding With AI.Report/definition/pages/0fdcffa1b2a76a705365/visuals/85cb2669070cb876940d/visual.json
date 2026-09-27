@@ -118,7 +118,7 @@
             "rectangleRoundedCurve": {
               "expr": {
                 "Literal": {
-                  "Value": "10L"
+                  "Value": "8L"
                 }
               }
             }
@@ -160,7 +160,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A8DADC'"
+                      "Value": "'#AACBC4'"
                     }
                   }
                 }
@@ -203,7 +203,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#A8DADC'"
+                      "Value": "'#AACBC4'"
                     }
                   }
                 }
@@ -249,7 +249,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#F1FAEE'"
+                      "Value": "'#F1F7F6'"
                     }
                   }
                 }
@@ -404,7 +404,7 @@
             "rectangleRoundedCurve": {
               "expr": {
                 "Literal": {
-                  "Value": "10L"
+                  "Value": "8L"
                 }
               }
             }

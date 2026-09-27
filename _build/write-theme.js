@@ -1,4 +1,4 @@
-// Writes the Kiva light theme (default mode) and registers it in report.json.
+// Writes the Kiva light theme (green role-based palette) (default mode) and registers it in report.json.
 // Dark mode is NOT a second theme: Power BI cannot switch themes at runtime, so
 // dark mode is driven by the 'Theme Mode' slicer + colour measures instead.
 const fs = require('fs');
@@ -8,20 +8,22 @@ const crypto = require('crypto');
 const REPORT = 'X:/Data Science for Good Kiva Crowdfunding/Data Science for Good Kiva Crowdfunding With AI.Report';
 const THEME_NAME = 'KivaImpact';
 
-// Design-system tokens (light mode). Keep in sync with the colour measures.
+// Design-system tokens (light mode, role-based green palette). Keep in sync with the Color * measures.
 const T = {
-  punchRed: '#E63946',
-  honeydew: '#F1FAEE',
-  frostedBlue: '#A8DADC',
-  cerulean: '#457B9D',
-  oxfordNavy: '#1D3557',
-  white: '#FFFFFF',
-  frostedTint: '#D4EDEE',   // frosted blue +50% (gridlines, subtle fills)
-  ceruleanTint: '#86A9BF',  // cerulean +35%
-  ceruleanShade: '#30566E', // cerulean -30%
-  frostedShade: '#6D8E8F',  // frosted blue -35%
-  navyTint: '#8E9AAB'       // navy +50%
+  page: '#F1F7F6',    // Anti-Flash White: page background
+  card: '#FFFFFF',    // White: cards / visuals
+  header: '#03624C',  // Bangladesh Green: header bar / elevated panel
+  text: '#021B1A',    // Rich Black: primary text
+  muted: '#707D7D',   // Stone: secondary text, axes
+  border: '#AACBC4',  // Pistachio: borders & gridlines
+  grid: '#DCE7E4',    // Pistachio tint: subtle gridlines / banding inside tables
+  accent: '#03624C',  // Bangladesh Green: slicers, selected state, links
+  hover: '#17876D',   // Frog: hover / secondary accent
+  good: '#17876D', warning: '#D99A1E', bad: '#C8414B'
 };
+// Light series order from the style guide (alternating dark/light), then palette-derived extras
+// so Power BI never auto-generates off-palette hues.
+const SERIES = ['#03624C', '#2CC295', '#707D7D', '#06302B', '#AACBC4', '#17876D', '#0B453A', '#5C6868', '#00DF81', '#032221', '#CFE0DB', '#2E7D6A'];
 
 const solid = (c) => ({ solid: { color: c } });
 const FONT = 'Segoe UI';
@@ -30,59 +32,57 @@ const FONT_SEMI = 'Segoe UI Semibold';
 const theme = {
   $schema: 'https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.157.json',
   name: null, // set below
-  // 16 palette-derived colours so Power BI never auto-generates off-palette hues.
-  dataColors: [T.cerulean, T.frostedBlue, T.oxfordNavy, T.ceruleanTint, T.ceruleanShade, T.frostedShade, T.navyTint, T.frostedTint,
-    '#5B8FB0', '#8FC4C7', '#3F5370', '#B6CCDB', '#243F55', '#5E7B7C', '#566881', '#C5E6E7'],
-  good: T.cerulean,
-  neutral: T.frostedBlue,
-  bad: T.punchRed,
-  maximum: T.oxfordNavy,
-  center: T.cerulean,
-  minimum: T.frostedTint,
-  null: T.navyTint,
-  firstLevelElements: T.oxfordNavy,
-  secondLevelElements: T.cerulean,
-  thirdLevelElements: T.frostedTint,
-  fourthLevelElements: T.navyTint,
-  background: T.white,
-  secondaryBackground: T.honeydew,
-  tableAccent: T.cerulean,
+  dataColors: SERIES,
+  good: T.good,
+  neutral: T.warning,
+  bad: T.bad,
+  maximum: T.header,
+  center: '#2CC295',
+  minimum: T.grid,
+  null: T.muted,
+  firstLevelElements: T.text,
+  secondLevelElements: T.muted,
+  thirdLevelElements: T.grid,
+  fourthLevelElements: T.muted,
+  background: T.card,
+  secondaryBackground: T.page,
+  tableAccent: T.accent,
   textClasses: {
-    callout: { fontSize: 28, fontFace: FONT_SEMI, color: T.oxfordNavy },
-    title: { fontSize: 12, fontFace: FONT_SEMI, color: T.oxfordNavy },
-    header: { fontSize: 12, fontFace: FONT_SEMI, color: T.oxfordNavy },
-    label: { fontSize: 10, fontFace: FONT, color: T.oxfordNavy }
+    callout: { fontSize: 28, fontFace: FONT_SEMI, color: T.text },
+    title: { fontSize: 12, fontFace: FONT_SEMI, color: T.text },
+    header: { fontSize: 12, fontFace: FONT_SEMI, color: T.text },
+    label: { fontSize: 10, fontFace: FONT, color: T.text }
   },
   visualStyles: {
     '*': {
       '*': {
-        title: [{ show: true, fontFamily: FONT_SEMI, fontSize: 12, fontColor: solid(T.oxfordNavy), alignment: 'left' }],
-        subTitle: [{ fontFamily: FONT, fontSize: 9, fontColor: solid(T.cerulean) }],
-        background: [{ show: true, color: solid(T.white), transparency: 0 }],
-        border: [{ show: true, color: solid(T.frostedBlue), radius: 12, width: 1 }],
+        title: [{ show: true, fontFamily: FONT_SEMI, fontSize: 12, fontColor: solid(T.text), alignment: 'left' }],
+        subTitle: [{ fontFamily: FONT, fontSize: 9, fontColor: solid(T.muted) }],
+        background: [{ show: true, color: solid(T.card), transparency: 0 }],
+        border: [{ show: true, color: solid(T.border), radius: 8, width: 1 }],
         dropShadow: [{ show: false }],
         padding: [{ top: 12, bottom: 12, left: 14, right: 14 }],
-        visualHeader: [{ show: true, background: solid(T.white), foreground: solid(T.cerulean), border: solid(T.white) }],
-        visualTooltip: [{ background: solid(T.oxfordNavy), titleFontColor: solid(T.frostedBlue), valueFontColor: solid(T.honeydew), fontSize: 10 }],
-        categoryAxis: [{ labelColor: solid(T.cerulean), fontFamily: FONT, fontSize: 9, titleColor: solid(T.cerulean), gridlineColor: solid(T.frostedTint), showAxisTitle: false }],
-        valueAxis: [{ labelColor: solid(T.cerulean), fontFamily: FONT, fontSize: 9, titleColor: solid(T.cerulean), gridlineColor: solid(T.frostedTint), gridlineStyle: 'dotted', showAxisTitle: false }],
-        legend: [{ labelColor: solid(T.oxfordNavy), fontFamily: FONT, fontSize: 9, position: 'Top' }],
-        labels: [{ color: solid(T.oxfordNavy), fontFamily: FONT, fontSize: 9 }]
+        visualHeader: [{ show: true, background: solid(T.card), foreground: solid(T.muted), border: solid(T.card) }],
+        visualTooltip: [{ background: solid(T.text), titleFontColor: solid(T.border), valueFontColor: solid(T.page), fontSize: 10 }],
+        categoryAxis: [{ labelColor: solid(T.muted), fontFamily: FONT, fontSize: 9, titleColor: solid(T.muted), gridlineColor: solid(T.grid), showAxisTitle: false }],
+        valueAxis: [{ labelColor: solid(T.muted), fontFamily: FONT, fontSize: 9, titleColor: solid(T.muted), gridlineColor: solid(T.grid), gridlineStyle: 'dotted', showAxisTitle: false }],
+        legend: [{ labelColor: solid(T.text), fontFamily: FONT, fontSize: 9, position: 'Top' }],
+        labels: [{ color: solid(T.text), fontFamily: FONT, fontSize: 9 }]
       }
     },
     page: {
       '*': {
-        background: [{ color: solid(T.honeydew), transparency: 0 }],
-        outspace: [{ color: solid(T.honeydew), transparency: 0 }],
+        background: [{ color: solid(T.page), transparency: 0 }],
+        outspace: [{ color: solid(T.page), transparency: 0 }],
         outspacePane: [{
-          backgroundColor: solid(T.white), foregroundColor: solid(T.oxfordNavy), transparency: 0,
+          backgroundColor: solid(T.card), foregroundColor: solid(T.text), transparency: 0,
           titleSize: 12, headerSize: 10, fontFamily: FONT,
-          border: true, borderColor: solid(T.frostedBlue),
-          checkboxAndApplyColor: solid(T.cerulean), inputBoxColor: solid(T.white), searchTextSize: 10
+          border: true, borderColor: solid(T.border),
+          checkboxAndApplyColor: solid(T.accent), inputBoxColor: solid(T.card), searchTextSize: 10
         }],
         filterCard: [
-          { $id: 'Applied', backgroundColor: solid(T.honeydew), foregroundColor: solid(T.oxfordNavy), border: true, borderColor: solid(T.frostedBlue), inputBoxColor: solid(T.white), transparency: 0, textSize: 10 },
-          { $id: 'Available', backgroundColor: solid(T.white), foregroundColor: solid(T.oxfordNavy), border: true, borderColor: solid(T.frostedBlue), inputBoxColor: solid(T.white), transparency: 0, textSize: 10 }
+          { $id: 'Applied', backgroundColor: solid(T.page), foregroundColor: solid(T.text), border: true, borderColor: solid(T.border), inputBoxColor: solid(T.card), transparency: 0, textSize: 10 },
+          { $id: 'Available', backgroundColor: solid(T.card), foregroundColor: solid(T.text), border: true, borderColor: solid(T.border), inputBoxColor: solid(T.card), transparency: 0, textSize: 10 }
         ]
       }
     },
@@ -96,19 +96,19 @@ const theme = {
     tableEx: {
       '*': {
         stylePreset: [{ name: 'None' }],
-        grid: [{ gridVertical: false, gridHorizontal: true, gridHorizontalColor: solid(T.frostedTint), outlineColor: solid(T.frostedBlue), rowPadding: 4 }],
-        columnHeaders: [{ fontColor: solid(T.oxfordNavy), backColor: solid(T.white), fontFamily: FONT_SEMI, fontSize: 10, columnAdjustment: 'growToFit', autoSizeColumnWidth: true }],
-        values: [{ fontColorPrimary: solid(T.oxfordNavy), backColorPrimary: solid(T.white), fontColorSecondary: solid(T.oxfordNavy), backColorSecondary: solid(T.honeydew), fontSize: 10 }]
+        grid: [{ gridVertical: false, gridHorizontal: true, gridHorizontalColor: solid(T.grid), outlineColor: solid(T.border), rowPadding: 4 }],
+        columnHeaders: [{ fontColor: solid(T.text), backColor: solid(T.card), fontFamily: FONT_SEMI, fontSize: 10, columnAdjustment: 'growToFit', autoSizeColumnWidth: true }],
+        values: [{ fontColorPrimary: solid(T.text), backColorPrimary: solid(T.card), fontColorSecondary: solid(T.text), backColorSecondary: solid(T.page), fontSize: 10 }]
       }
     },
     pivotTable: {
       '*': {
         stylePreset: [{ name: 'None' }],
-        grid: [{ gridVertical: false, gridHorizontal: true, gridHorizontalColor: solid(T.frostedTint), outlineColor: solid(T.frostedBlue), rowPadding: 4 }],
-        columnHeaders: [{ fontColor: solid(T.oxfordNavy), backColor: solid(T.white), fontFamily: FONT_SEMI, fontSize: 10, columnAdjustment: 'growToFit', autoSizeColumnWidth: true }],
-        rowHeaders: [{ fontColor: solid(T.oxfordNavy), backColor: solid(T.white), fontSize: 10 }],
-        values: [{ fontColorPrimary: solid(T.oxfordNavy), backColorPrimary: solid(T.white), fontColorSecondary: solid(T.oxfordNavy), backColorSecondary: solid(T.honeydew), fontSize: 10 }],
-        subTotals: [{ fontColor: solid(T.oxfordNavy), backColor: solid(T.honeydew) }]
+        grid: [{ gridVertical: false, gridHorizontal: true, gridHorizontalColor: solid(T.grid), outlineColor: solid(T.border), rowPadding: 4 }],
+        columnHeaders: [{ fontColor: solid(T.text), backColor: solid(T.card), fontFamily: FONT_SEMI, fontSize: 10, columnAdjustment: 'growToFit', autoSizeColumnWidth: true }],
+        rowHeaders: [{ fontColor: solid(T.text), backColor: solid(T.card), fontSize: 10 }],
+        values: [{ fontColorPrimary: solid(T.text), backColorPrimary: solid(T.card), fontColorSecondary: solid(T.text), backColorSecondary: solid(T.page), fontSize: 10 }],
+        subTotals: [{ fontColor: solid(T.text), backColor: solid(T.page) }]
       }
     },
     advancedSlicerVisual: { '*': { title: [{ show: false }] } },

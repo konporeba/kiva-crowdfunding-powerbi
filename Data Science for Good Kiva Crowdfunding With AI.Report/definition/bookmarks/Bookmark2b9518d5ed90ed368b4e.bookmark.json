@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Filters Close - Geography & Poverty",
+  "name": "Bookmark2b9518d5ed90ed368b4e",
+  "options": {
+    "targetVisualNames": [
+      "c237002e4abfd98a7df1"
+    ],
+    "applyOnlyToTargetVisuals": true,
+    "suppressData": true,
+    "suppressActiveSection": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "93fef5260e7b9413a4f4",
+    "sections": {
+      "93fef5260e7b9413a4f4": {
+        "visualContainers": {},
+        "visualContainerGroups": {
+          "c237002e4abfd98a7df1": {
+            "isHidden": true
+          }
+        }
+      }
+    }
+  }
+}

@@ -32,12 +32,12 @@ table _Measures
 		displayFolder: Lending Volume
 		lineageTag: c741b046-2c75-4155-9f60-d0770b64f22c
 
-	/// Requested amount that lenders did not cover, summed per loan and floored at zero, so the 2 over-funded loans do not offset under-funded ones. Shown in the alert colour (#E63946).
+	/// Requested amount that lenders did not cover, summed per loan and floored at zero, so the 2 over-funded loans do not offset under-funded ones. Shown in the Bad status colour.
 	measure 'Funding Gap' =
 			// Purpose : Unfunded remainder of requested loans (USD).
 			// Logic   : Per loan, loan_amount - funded_amount floored at 0, then summed.
 			//           Flooring stops the 2 over-funded loans from masking gaps elsewhere.
-			// Used in : Overview funding progress rings / gap callout (punch-red #E63946).
+			// Used in : Overview funding progress rings / gap callout (Bad status colour).
 			SUMX(
 			    'Loans',
 			    VAR _gap = 'Loans'[loan_amount] - 'Loans'[funded_amount]
@@ -404,84 +404,84 @@ table _Measures
 		displayFolder: Theme
 		lineageTag: 38cab927-9b62-4e66-af05-a2b64ec9bf65
 
-	/// Page/canvas colour: Honeydew #F1FAEE (light) or deep navy #101D30 (dark). Bound via fx to the full-page background shape.
+	/// Page/canvas background: Anti-Flash White #F1F7F6 (light) or Rich Black #021B1A (dark).
 	measure 'Color Page' =
-			// Purpose : Canvas background colour for the current mode.
-			// Logic   : Light = honeydew; Dark = oxford navy shaded 45%.
-			// Used in : Full-page background shape on every page.
-			IF([Is Dark Mode], "#101D30", "#F1FAEE")
+			// Purpose : Page/canvas background colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#021B1A", "#F1F7F6")
 		displayFolder: Theme
 		lineageTag: ee78118d-c9e1-44ba-bd0f-eefa33c7bc84
 
-	/// Card/visual surface colour: white #FFFFFF (light) or Oxford Navy #1D3557 (dark).
+	/// Card/visual background: White #FFFFFF (light) or Dark Green #032221 (dark).
 	measure 'Color Card' =
-			// Purpose : Visual container background for the current mode.
-			// Logic   : Light = white; Dark = oxford navy.
-			// Used in : Background fx on every native visual.
-			IF([Is Dark Mode], "#1D3557", "#FFFFFF")
+			// Purpose : Card/visual background colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#032221", "#FFFFFF")
 		displayFolder: Theme
 		lineageTag: 656d9091-71f2-451a-96be-e945854ed46b
 
-	/// Card border / divider colour: Frosted Blue #A8DADC (light) or navy tint #3F5370 (dark).
+	/// Borders: Pistachio #AACBC4 (light) or Basil #0B453A (dark).
 	measure 'Color Border' =
-			// Purpose : Border and divider colour for the current mode.
-			// Logic   : Light = frosted blue; Dark = oxford navy tinted 15%.
-			// Used in : Border fx on native visuals.
-			IF([Is Dark Mode], "#3F5370", "#A8DADC")
+			// Purpose : Borders colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#0B453A", "#AACBC4")
 		displayFolder: Theme
 		lineageTag: 027eb481-2f22-41a3-974e-2238430f81fe
 
-	/// Primary text colour: Oxford Navy #1D3557 (light) or Honeydew #F1FAEE (dark).
+	/// Primary text: Rich Black #021B1A (light) or Anti-Flash White #F1F7F6 (dark).
 	measure 'Color Text' =
-			// Purpose : Titles, values and primary labels.
-			// Logic   : Light = oxford navy; Dark = honeydew.
-			// Used in : Title / label / data-label font colour fx.
-			IF([Is Dark Mode], "#F1FAEE", "#1D3557")
+			// Purpose : Primary text colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#F1F7F6", "#021B1A")
 		displayFolder: Theme
 		lineageTag: f103dcce-c729-412b-bdee-e5eddf429850
 
-	/// Secondary text colour: Cerulean #457B9D (light) or Frosted Blue #A8DADC (dark).
+	/// Secondary text (labels, axes): Stone #707D7D (light) or Pistachio #AACBC4 (dark).
 	measure 'Color Text Muted' =
-			// Purpose : Subtitles, axis labels, captions.
-			// Logic   : Light = cerulean; Dark = frosted blue (cerulean is too dark on navy).
-			// Used in : Subtitle / axis label font colour fx.
-			IF([Is Dark Mode], "#A8DADC", "#457B9D")
+			// Purpose : Secondary text (labels, axes) colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#AACBC4", "#707D7D")
 		displayFolder: Theme
 		lineageTag: 5fe45d9b-211a-4018-8d92-54bf750bb265
 
-	/// Primary data series colour: Cerulean #457B9D (light) or Frosted Blue #A8DADC (dark).
+	/// Data series 1: Bangladesh Green #03624C (light) or Mountain Meadow #2CC295 (dark).
 	measure 'Color Series Primary' =
-			// Purpose : Main bars/lines/areas.
-			// Logic   : Light = cerulean; Dark = frosted blue for contrast on navy.
-			// Used in : dataPoint colour fx on charts.
-			IF([Is Dark Mode], "#A8DADC", "#457B9D")
+			// Purpose : Data series 1 colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#2CC295", "#03624C")
 		displayFolder: Theme
 		lineageTag: 94c17679-97aa-4f6e-9ee5-00a4c6440db1
 
-	/// Secondary data series colour: Frosted Blue #A8DADC (light) or Cerulean #457B9D (dark).
+	/// Data series 2: Mountain Meadow #2CC295 (light) or Pistachio #AACBC4 (dark).
 	measure 'Color Series Secondary' =
-			// Purpose : Comparison / secondary series.
-			// Logic   : Swaps with the primary series between modes.
-			// Used in : Secondary series colour fx.
-			IF([Is Dark Mode], "#457B9D", "#A8DADC")
+			// Purpose : Data series 2 colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#AACBC4", "#2CC295")
 		displayFolder: Theme
 		lineageTag: 2d6580bc-56a6-462f-95cd-e69fb6cf9ce3
 
-	/// Gridline / subtle fill colour: #D4EDEE (light) or #3F5370 (dark).
+	/// Gridlines: Pistachio #AACBC4 (light) or Basil #0B453A (dark).
 	measure 'Color Gridline' =
-			// Purpose : Gridlines and subtle fills.
-			// Logic   : Light = frosted blue tinted 50%; Dark = navy tinted 15%.
-			// Used in : Axis gridline colour fx.
-			IF([Is Dark Mode], "#3F5370", "#D4EDEE")
+			// Purpose : Gridlines colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#0B453A", "#AACBC4")
 		displayFolder: Theme
 		lineageTag: 841f6ba7-d39f-4a39-b69f-48b31508a38d
 
-	/// Navigation rail colour: Oxford Navy #1D3557 (light) or #14253D (dark).
+	/// Header bar / elevated panel (nav rail, drawer): Bangladesh Green #03624C (light) or Pine #06302B (dark).
 	measure 'Color Nav' =
-			// Purpose : Nav rail / drawer fill.
-			// Logic   : Light = oxford navy; Dark = navy shaded 30% so it separates from dark cards.
-			// Used in : Nav rail shapes.
-			IF([Is Dark Mode], "#14253D", "#1D3557")
+			// Purpose : Header bar / elevated panel (nav rail, drawer) colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#06302B", "#03624C")
 		displayFolder: Theme
 		lineageTag: fe3142e4-9eb0-4c0c-8d88-81c678a36a69
 
@@ -499,18 +499,21 @@ table _Measures
 			// Purpose : One place for HTML visual styling so every HTML card stays consistent.
 			// Logic   : CSS custom properties swap between light and dark tokens via [Is Dark Mode];
 			//           shared classes (.k root, .card, .eyebrow, .fu fade-up + .d1-.d8 stagger delays).
+			//           --radius (8px) is enforced on every card / panel class with !important because
+			//           each HTML measure's own <style> block comes after this one.
 			// Used in : Prepended by every HTML * measure.
 			VAR _vars =
 			    IF(
 			        [Is Dark Mode],
-			        "--page:#101D30;--card:#1D3557;--card2:#14253D;--border:#3F5370;--text:#F1FAEE;--muted:#A8DADC;--p:#A8DADC;--s:#457B9D;--grid:#3F5370;--alert:#E63946;--accent:#A8DADC;--track:#2A4466;",
-			        "--page:#F1FAEE;--card:#FFFFFF;--card2:#F1FAEE;--border:#A8DADC;--text:#1D3557;--muted:#457B9D;--p:#457B9D;--s:#A8DADC;--grid:#D4EDEE;--alert:#E63946;--accent:#457B9D;--track:#E3EBF0;"
+			        "--page:#021B1A;--card:#032221;--card2:#06302B;--border:#0B453A;--text:#F1F7F6;--muted:#AACBC4;--p:#2CC295;--s:#AACBC4;--grid:#0B453A;--track:#0B453A;--accent:#00DF81;--hover:#2CC295;--good:#00DF81;--warn:#F2C14E;--bad:#FF6B6B;--alert:#FF6B6B;--badsoft:rgba(255,107,107,.25);--hero1:#06302B;--hero2:#032221;--onhero:#F1F7F6;--onhero2:#AACBC4;--onheroaccent:#00DF81;--heroline:rgba(170,203,196,.22);--herofill:rgba(241,247,246,.06);",
+			        "--page:#F1F7F6;--card:#FFFFFF;--card2:#F1F7F6;--border:#AACBC4;--text:#021B1A;--muted:#5C6868;--p:#03624C;--s:#2CC295;--grid:#DCE7E4;--track:#E3EEEB;--accent:#03624C;--hover:#17876D;--good:#17876D;--warn:#D99A1E;--bad:#C8414B;--alert:#C8414B;--badsoft:rgba(200,65,75,.2);--hero1:#03624C;--hero2:#06302B;--onhero:#F1F7F6;--onhero2:#AACBC4;--onheroaccent:#00DF81;--heroline:rgba(170,203,196,.28);--herofill:rgba(241,247,246,.08);"
 			    )
 			RETURN
 			    "<style>"
-			        & ".k{" & _vars & "font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);height:100%;width:100%;margin:0;line-height:1.35;}"
+			        & ".k{" & _vars & "--radius:8px;font-family:'Segoe UI',system-ui,sans-serif;color:var(--text);height:100%;width:100%;margin:0;line-height:1.35;}"
 			        & ".k *{box-sizing:border-box;}"
-			        & ".card{background:var(--card);border:1px solid var(--border);border-radius:14px;}"
+			        & ".card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);}"
+			        & ".card,.ringcard,.ins,.cp,.tt,.fact,.kp,.ni,.badge{border-radius:var(--radius) !important;}"
 			        & ".eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;}"
 			        & ".muted{color:var(--muted);}"
 			        & ".alert{color:var(--alert);}"
@@ -598,19 +601,19 @@ table _Measures
 			        & ".yl span{margin-left:6px;font-size:10px;padding:1px 6px;border-radius:8px;background:var(--track);}"
 			        & ".yv{font-family:'Segoe UI Semibold';font-size:17px;font-weight:600;margin:1px 0 6px;}"
 			        & ".art{position:absolute;left:760px;top:0;width:416px;height:430px;}"
-			        & ".ringcard{position:absolute;inset:18px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:22px;background:linear-gradient(155deg,#1D3557 0%,#457B9D 100%);color:#F1FAEE;overflow:hidden;}"
+			        & ".ringcard{position:absolute;inset:18px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(155deg,var(--hero1) 0%,var(--hero2) 100%);color:var(--onhero);overflow:hidden;}"
 			        & "@keyframes glow{0%,100%{opacity:.10;}50%{opacity:.30;}}"
-			        & ".ringcard .glow{position:absolute;border-radius:50%;background:#A8DADC;filter:blur(46px);animation:glow 6s ease-in-out infinite;}"
+			        & ".ringcard .glow{position:absolute;border-radius:50%;background:var(--onheroaccent);filter:blur(46px);animation:glow 6s ease-in-out infinite;}"
 			        & ".rc{position:relative;animation:floaty 6s ease-in-out infinite;}"
 			        & ".rc .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}"
 			        & ".rv{font-family:'Segoe UI Semibold';font-size:44px;font-weight:600;line-height:1;}"
-			        & ".rl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#A8DADC;margin-top:6px;}"
-			        & ".rfoot{position:relative;display:flex;gap:30px;margin-top:14px;font-size:12px;color:#A8DADC;}"
-			        & ".rfoot b{display:block;font-family:'Segoe UI Semibold';font-size:17px;color:#F1FAEE;font-weight:600;}"
-			        & ".dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#E63946;margin-right:6px;box-shadow:0 0 0 3px rgba(230,57,70,.25);}"
+			        & ".rl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--onhero2);margin-top:6px;}"
+			        & ".rfoot{position:relative;display:flex;gap:30px;margin-top:14px;font-size:12px;color:var(--onhero2);}"
+			        & ".rfoot b{display:block;font-family:'Segoe UI Semibold';font-size:17px;color:var(--onhero);font-weight:600;}"
+			        & ".dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--bad);margin-right:6px;box-shadow:0 0 0 3px var(--badsoft);}"
 			        & ".sect{position:absolute;left:0;top:424px;}"
 			        & ".nav{position:absolute;width:381px;height:110px;display:flex;align-items:center;gap:14px;padding:0 18px;}"
-			        & ".ni{flex:none;width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--card2);color:var(--accent);border:1px solid var(--border);}"
+			        & ".ni{flex:none;width:46px;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--card2);color:var(--accent);border:1px solid var(--border);}"
 			        & ".nt{font-family:'Segoe UI Semibold';font-size:15px;font-weight:600;}"
 			        & ".nd{font-size:12px;color:var(--muted);margin-top:2px;}"
 			        & ".na{margin-left:auto;font-size:20px;color:var(--accent);}"
@@ -626,9 +629,9 @@ table _Measures
 			        & "<div class='art fu d3'><div class='ringcard'>"
 			        & "<div class='glow' style='width:180px;height:180px;left:-40px;top:-50px'></div><div class='glow' style='width:140px;height:140px;right:-30px;bottom:-20px;animation-delay:3s'></div>"
 			        & "<div class='rc'><svg width='250' height='250' viewBox='0 0 250 250'>"
-			        & "<circle cx='125' cy='125' r='108' fill='none' stroke='rgba(241,250,238,.14)' stroke-width='16'/>"
-			        & "<circle cx='125' cy='125' r='108' fill='none' stroke='#A8DADC' stroke-width='16' stroke-linecap='round' transform='rotate(-90 125 125)' stroke-dasharray='" & _circTxt & "' stroke-dashoffset='" & _offset & "' style='--c:" & _circTxt & ";animation:ring 1.8s cubic-bezier(.2,.7,.2,1) .4s both'/>"
-			        & "<circle cx='125' cy='125' r='84' fill='none' stroke='rgba(241,250,238,.18)' stroke-width='1' stroke-dasharray='2 6'/>"
+			        & "<circle cx='125' cy='125' r='108' fill='none' stroke='var(--herofill)' stroke-width='16'/>"
+			        & "<circle cx='125' cy='125' r='108' fill='none' stroke='var(--onheroaccent)' stroke-width='16' stroke-linecap='round' transform='rotate(-90 125 125)' stroke-dasharray='" & _circTxt & "' stroke-dashoffset='" & _offset & "' style='--c:" & _circTxt & ";animation:ring 1.8s cubic-bezier(.2,.7,.2,1) .4s both'/>"
+			        & "<circle cx='125' cy='125' r='84' fill='none' stroke='var(--herofill)' stroke-width='1' stroke-dasharray='2 6'/>"
 			        & "</svg><div class='ctr'><div class='rv'>" & FORMAT(_funded, "0.0%") & "</div><div class='rl'>of requests funded</div></div></div>"
 			        & "<div class='rfoot'><div><b>" & _lenders & "</b>lender commitments</div><div><b>" & _gap & "</b><span class='dot'></span>funding gap</div></div>"
 			        & "</div></div>"
@@ -690,11 +693,11 @@ table _Measures
 		displayFolder: HTML
 		lineageTag: 35f918c6-bf37-4f77-9e51-82b464abf1df
 
-	/// Funding progress panel (404x240): animated rings for Funded %, Fully Funded Loan % and Pre-Disbursed Loan %, plus the funding gap in the alert colour.
+	/// Funding progress panel (404x240): animated rings for Funded %, Fully Funded Loan % and Pre-Disbursed Loan %, plus the funding gap in the Bad status colour.
 	measure 'HTML Funding Rings' =
 			// Purpose : Show how completely and how early loans are funded.
 			// Logic   : Each ring = SVG circle with stroke-dashoffset = circumference x (1 - share),
-			//           animated from empty. Gap line uses --alert (#E63946), the only red on the page.
+			//           animated from empty. Gap line uses --alert (the Bad status colour).
 			// Used in : Overview page, row 2 right.
 			VAR _circ = 2 * PI() * 40
 			VAR _ring = "<div class='rg fu d{d}'><div class='rw'><svg width='104' height='104' viewBox='0 0 104 104'><circle cx='52' cy='52' r='40' fill='none' stroke='var(--track)' stroke-width='10'/><circle cx='52' cy='52' r='40' fill='none' stroke='{c}' stroke-width='10' stroke-linecap='round' transform='rotate(-90 52 52)' stroke-dasharray='" & FORMAT(_circ, "0.00") & "' stroke-dashoffset='{o}' style='--c:" & FORMAT(_circ, "0.00") & ";animation:ring 1.6s cubic-bezier(.2,.7,.2,1) {a}s both'/></svg><div class='rv'>{v}</div></div><div class='rl'>{l}</div></div>"
@@ -712,7 +715,7 @@ table _Measures
 			        & ".rl{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.25;}"
 			        & ".gap{margin-top:auto;display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px solid var(--grid);font-size:12px;color:var(--muted);}"
 			        & ".gap b{font-family:'Segoe UI Semibold';font-size:15px;color:var(--alert);font-weight:600;}"
-			        & ".dot{width:8px;height:8px;border-radius:50%;background:var(--alert);box-shadow:0 0 0 3px rgba(230,57,70,.2);}"
+			        & ".dot{width:8px;height:8px;border-radius:50%;background:var(--alert);box-shadow:0 0 0 3px var(--badsoft);}"
 			        & "</style>"
 			        & "<div class='k'><div class='fr card'>"
 			        & "<div class='eyebrow fu d1'>Funding progress</div>"
@@ -783,12 +786,12 @@ table _Measures
 			RETURN
 			    [HTML Theme CSS]
 			        & "<style>"
-			        & ".ins{position:relative;height:212px;padding:16px 18px;border-radius:14px;background:linear-gradient(150deg,#1D3557 0%,#457B9D 120%);color:#F1FAEE;overflow:hidden;}"
-			        & ".ins .eyebrow{color:#A8DADC;}"
+			        & ".ins{position:relative;height:212px;padding:16px 18px;border-radius:8px;background:linear-gradient(150deg,var(--hero1) 0%,var(--hero2) 120%);color:var(--onhero);overflow:hidden;}"
+			        & ".ins .eyebrow{color:var(--onhero2);}"
 			        & ".ins p{font-size:13.5px;line-height:1.5;margin:10px 0 0;}"
-			        & ".ins b{font-family:'Segoe UI Semibold';font-weight:600;color:#A8DADC;}"
-			        & ".ins .orb{position:absolute;width:150px;height:150px;border-radius:50%;right:-50px;top:-60px;border:1px solid rgba(168,218,220,.35);animation:floaty 7s ease-in-out infinite;}"
-			        & ".ins .orb2{width:90px;height:90px;right:-10px;top:-20px;border-color:rgba(168,218,220,.2);animation-delay:1.5s;}"
+			        & ".ins b{font-family:'Segoe UI Semibold';font-weight:600;color:var(--onheroaccent);}"
+			        & ".ins .orb{position:absolute;width:150px;height:150px;border-radius:50%;right:-50px;top:-60px;border:1px solid var(--heroline);animation:floaty 7s ease-in-out infinite;}"
+			        & ".ins .orb2{width:90px;height:90px;right:-10px;top:-20px;border-color:var(--heroline);animation-delay:1.5s;}"
 			        & "</style>"
 			        & "<div class='k'><div class='ins fu d2'><div class='orb'></div><div class='orb orb2'></div>"
 			        & "<div class='eyebrow'>&#10022; Insight</div>"
@@ -1168,7 +1171,7 @@ table _Measures
 			        & ".ab p{font-size:12.5px;line-height:1.55;margin:0 0 10px;color:var(--text);}"
 			        & ".ab .muted{color:var(--muted);}"
 			        & ".facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}"
-			        & ".fact{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;}"
+			        & ".fact{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}"
 			        & ".fact b{display:block;font-family:'Segoe UI Semibold';font-size:18px;font-weight:600;}"
 			        & ".fact span{font-size:10.5px;color:var(--muted);}"
 			        & ".df{display:grid;grid-template-columns:128px 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--grid);font-size:11.5px;line-height:1.4;}"
@@ -1211,18 +1214,18 @@ table _Measures
 			RETURN
 			    [HTML Theme CSS]
 			        & "<style>"
-			        & ".cp{height:600px;padding:20px;overflow:hidden;display:flex;flex-direction:column;border-radius:14px;background:linear-gradient(165deg,#1D3557 0%,#457B9D 130%);color:#F1FAEE;}"
-			        & ".badge{width:54px;height:54px;border-radius:14px;background:rgba(241,250,238,.12);border:1px solid rgba(168,218,220,.4);display:flex;align-items:center;justify-content:center;font-family:'Segoe UI Semibold';font-size:20px;font-weight:600;color:#A8DADC;}"
+			        & ".cp{height:600px;padding:20px;overflow:hidden;display:flex;flex-direction:column;border-radius:8px;background:linear-gradient(165deg,var(--hero1) 0%,var(--hero2) 130%);color:var(--onhero);}"
+			        & ".badge{width:54px;height:54px;border-radius:8px;background:var(--herofill);border:1px solid var(--heroline);display:flex;align-items:center;justify-content:center;font-family:'Segoe UI Semibold';font-size:20px;font-weight:600;color:var(--onhero2);}"
 			        & ".cn{font-family:'Segoe UI Semibold';font-size:28px;font-weight:600;line-height:1.1;margin:14px 0 4px;}"
-			        & ".rg{font-size:12px;color:#A8DADC;}"
-			        & ".pill{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:12px;font-size:11px;background:rgba(168,218,220,.18);color:#F1FAEE;border:1px solid rgba(168,218,220,.35);}"
+			        & ".rg{font-size:12px;color:var(--onhero2);}"
+			        & ".pill{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:12px;font-size:11px;background:var(--heroline);color:var(--onhero);border:1px solid var(--heroline);}"
 			        & ".grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 14px;}"
-			        & ".kp{background:rgba(241,250,238,.08);border:1px solid rgba(168,218,220,.22);border-radius:10px;padding:10px 12px;}"
+			        & ".kp{background:var(--herofill);border:1px solid var(--heroline);border-radius:8px;padding:10px 12px;}"
 			        & ".kp b{display:block;font-family:'Segoe UI Semibold';font-size:19px;font-weight:600;}"
-			        & ".kp span{font-size:10.5px;color:#A8DADC;}"
-			        & ".ln{font-size:12px;line-height:1.5;padding:8px 0;border-top:1px solid rgba(168,218,220,.22);}"
-			        & ".ln span{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#A8DADC;}"
-			        & ".empty{margin:auto 0;text-align:center;color:#A8DADC;font-size:13px;line-height:1.6;}"
+			        & ".kp span{font-size:10.5px;color:var(--onhero2);}"
+			        & ".ln{font-size:12px;line-height:1.5;padding:8px 0;border-top:1px solid var(--heroline);}"
+			        & ".ln span{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--onhero2);}"
+			        & ".empty{margin:auto 0;text-align:center;color:var(--onhero2);font-size:13px;line-height:1.6;}"
 			        & "</style>"
 			        & "<div class='k'><div class='cp fu d1'>"
 			        & IF(
@@ -1256,13 +1259,13 @@ table _Measures
 			RETURN
 			    [HTML Theme CSS]
 			        & "<style>"
-			        & ".tt{height:196px;padding:14px 16px;border-radius:12px;background:#1D3557;color:#F1FAEE;overflow:hidden;}"
+			        & ".tt{height:196px;padding:14px 16px;border-radius:8px;background:var(--hero1);color:var(--onhero);overflow:hidden;}"
 			        & ".tt .n{font-family:'Segoe UI Semibold';font-size:17px;font-weight:600;}"
-			        & ".tt .r{font-size:10.5px;color:#A8DADC;margin-bottom:10px;}"
+			        & ".tt .r{font-size:10.5px;color:var(--onhero2);margin-bottom:10px;}"
 			        & ".tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}"
 			        & ".tg b{display:block;font-family:'Segoe UI Semibold';font-size:15px;font-weight:600;}"
-			        & ".tg span{font-size:10px;color:#A8DADC;}"
-			        & ".tt .m{margin-top:12px;font-size:11px;color:#A8DADC;border-top:1px solid rgba(168,218,220,.25);padding-top:8px;}"
+			        & ".tg span{font-size:10px;color:var(--onhero2);}"
+			        & ".tt .m{margin-top:12px;font-size:11px;color:var(--onhero2);border-top:1px solid var(--heroline);padding-top:8px;}"
 			        & "</style>"
 			        & "<div class='k'><div class='tt'><div class='n'>" & _country & "</div><div class='r'>" & COALESCE(SELECTEDVALUE('Countries'[World Region]), "") & "</div>"
 			        & "<div class='tg'><div><b>" & FORMAT([Total Loan Amount] / 1e6, "$#,0.0") & "M</b><span>requested</span></div><div><b>" & FORMAT([Total Loans], "#,0") & "</b><span>loans</span></div><div><b>" & FORMAT([Female Borrower %], "0%") & "</b><span>women</span></div>"
@@ -1270,6 +1273,122 @@ table _Measures
 			        & "<div class='m'>MPI: " & COALESCE(SELECTEDVALUE('Countries'[MPI Band]), "n/a") & "</div></div></div>"
 		displayFolder: HTML
 		lineageTag: 8c8911bb-2a18-422a-b64b-e9f00a5b8d8a
+
+	/// Accent for slicers, selected state and links: Bangladesh Green #03624C (light) or Caribbean Green #00DF81 (dark). #00DF81 is never used as text on white.
+	measure 'Color Accent' =
+			// Purpose : Accent for slicers, selected state and links colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#00DF81", "#03624C")
+		displayFolder: Theme
+		lineageTag: 90c20357-1aac-49f1-895e-d51aaa781dd9
+
+	/// Hover / secondary accent: Frog #17876D (light) or Mountain Meadow #2CC295 (dark).
+	measure 'Color Hover' =
+			// Purpose : Hover / secondary accent colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#2CC295", "#17876D")
+		displayFolder: Theme
+		lineageTag: e29934f3-759c-4be9-8a76-075bc87091e7
+
+	/// Current-page highlight on the nav rail: Frog #17876D (light) or Basil #0B453A (dark).
+	measure 'Color Nav Active' =
+			// Purpose : Current-page highlight on the nav rail colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#0B453A", "#17876D")
+		displayFolder: Theme
+		lineageTag: eafbd9f2-5b45-4f44-983f-354383326fcf
+
+	/// Status good / on target: Frog #17876D (light) or Caribbean Green #00DF81 (dark).
+	measure 'Color Good' =
+			// Purpose : Status good / on target colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#00DF81", "#17876D")
+		displayFolder: Theme
+		lineageTag: d85eb1bb-aa68-42f1-b225-8838d0ba4462
+
+	/// Status warning (palette addition): Amber #D99A1E (light) or #F2C14E (dark).
+	measure 'Color Warning' =
+			// Purpose : Status warning (palette addition) colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#F2C14E", "#D99A1E")
+		displayFolder: Theme
+		lineageTag: a81ee6c0-076b-461a-a8e5-87d422774d63
+
+	/// Status bad / off target, also the funding gap (palette addition): Coral red #C8414B (light) or Coral #FF6B6B (dark).
+	measure 'Color Bad' =
+			// Purpose : Status bad / off target, also the funding gap (palette addition) colour for the current theme mode.
+			// Logic   : Light / dark values from the role-based palette.
+			// Used in : fx colour bindings in the report and the HTML Theme CSS tokens.
+			IF([Is Dark Mode], "#FF6B6B", "#C8414B")
+		displayFolder: Theme
+		lineageTag: d4a72031-9806-4b46-bb0a-2bde238f2a99
+
+	/// Number of the four global filters (Year, World Region, Country, Sector) that currently have a selection. Drives the Filters button label.
+	measure 'Active Filter Count' =
+			// Purpose : How many global filters are active.
+			// Logic   : ISFILTERED on each synced slicer column (cross-filtering from visuals is not counted).
+			// Used in : Filter Button Label, HTML Active Filters.
+			INT(ISFILTERED('Date'[Year])) + INT(ISFILTERED('Countries'[World Region]))
+			    + INT(ISFILTERED('Countries'[Country])) + INT(ISFILTERED('Loans'[sector]))
+		formatString: 0
+		displayFolder: Filters
+		lineageTag: 2375b78f-21f1-4c56-802d-e1b37b571621
+
+	/// Text for the header Filters button: 'Filters' or 'Filters · N' when N global filters are active.
+	measure 'Filter Button Label' =
+			// Purpose : Show the active filter count on the Filters button.
+			// Logic   : Appends the count only when at least one filter is active.
+			// Used in : Filters button text (fx) on every analysis page.
+			VAR _n = [Active Filter Count]
+			RETURN
+			    IF(_n > 0, "Filters " & UNICHAR(183) & " " & _n, "Filters")
+		displayFolder: Filters
+		lineageTag: 02a7d816-9dbe-42b6-860e-1a7434930ce4
+
+	/// Header chip strip (480x44) summarising the active global filters (Year, World Region, Country, Sector): up to two values per filter then '+N', or 'Showing all data' when nothing is filtered.
+	measure 'HTML Active Filters' =
+			// Purpose : Make the active filters visible without opening the filter drawer.
+			// Logic   : One chip per filtered column; values listed up to two, then '+N'.
+			//           Right-aligned so the chips sit next to the Filters button; root is shorter than
+			//           the visual so the HTML visual never shows a scrollbar.
+			// Used in : Header of every analysis page.
+			VAR _chip = "<span class='c'><em>{l}</em>{v}</span>"
+			VAR _yr =
+			    IF(ISFILTERED('Date'[Year]),
+			        VAR _v = VALUES('Date'[Year]) VAR _n = COUNTROWS(_v)
+			        RETURN SUBSTITUTE(SUBSTITUTE(_chip, "{l}", "Year"), "{v}", CONCATENATEX(TOPN(2, _v, 'Date'[Year], ASC), 'Date'[Year], ", ", 'Date'[Year], ASC) & IF(_n > 2, " +" & (_n - 2))))
+			VAR _rg =
+			    IF(ISFILTERED('Countries'[World Region]),
+			        VAR _v = VALUES('Countries'[World Region]) VAR _n = COUNTROWS(_v)
+			        RETURN SUBSTITUTE(SUBSTITUTE(_chip, "{l}", "Region"), "{v}", CONCATENATEX(TOPN(2, _v, 'Countries'[World Region], ASC), 'Countries'[World Region], ", ", 'Countries'[World Region], ASC) & IF(_n > 2, " +" & (_n - 2))))
+			VAR _ct =
+			    IF(ISFILTERED('Countries'[Country]),
+			        VAR _v = VALUES('Countries'[Country]) VAR _n = COUNTROWS(_v)
+			        RETURN SUBSTITUTE(SUBSTITUTE(_chip, "{l}", "Country"), "{v}", CONCATENATEX(TOPN(2, _v, 'Countries'[Country], ASC), 'Countries'[Country], ", ", 'Countries'[Country], ASC) & IF(_n > 2, " +" & (_n - 2))))
+			VAR _sc =
+			    IF(ISFILTERED('Loans'[sector]),
+			        VAR _v = VALUES('Loans'[sector]) VAR _n = COUNTROWS(_v)
+			        RETURN SUBSTITUTE(SUBSTITUTE(_chip, "{l}", "Sector"), "{v}", CONCATENATEX(TOPN(2, _v, 'Loans'[sector], ASC), 'Loans'[sector], ", ", 'Loans'[sector], ASC) & IF(_n > 2, " +" & (_n - 2))))
+			VAR _chips = _yr & _rg & _ct & _sc
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".af{height:32px;display:flex;justify-content:flex-end;align-items:center;gap:6px;overflow:hidden;white-space:nowrap;}"
+			        & ".c{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:13px;background:var(--card);border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text);animation:fadeUp .4s ease both;}"
+			        & ".c em{font-style:normal;font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}"
+			        & ".none{font-size:11px;color:var(--muted);}"
+			        & ".dot{width:7px;height:7px;border-radius:50%;background:var(--good);display:inline-block;margin-right:6px;}"
+			        & "</style>"
+			        & "<div class='k'><div class='af'>"
+			        & IF(_chips = "", "<span class='none'><span class='dot'></span>Showing all data</span>", _chips)
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: 5281c674-24ab-40b2-8994-fa927c9d0dda
 
 	/// Placeholder so the table has a column; not used.
 	column Placeholder

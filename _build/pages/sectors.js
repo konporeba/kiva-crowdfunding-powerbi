@@ -2,9 +2,9 @@
 // sector -> activity treemap / HTML sector leaderboard.
 // Treemap colours: darker palette shades only, so white category labels stay readable in both themes.
 const SECTOR_COLORS = [
-  ['Agriculture', '#457B9D'], ['Food', '#1D3557'], ['Retail', '#30566E'], ['Services', '#5B8FB0'], ['Clothing', '#3F5370'],
-  ['Education', '#243F55'], ['Housing', '#566881'], ['Personal Use', '#5E7B7C'], ['Arts', '#457B9D'], ['Transportation', '#1D3557'],
-  ['Health', '#30566E'], ['Construction', '#5B8FB0'], ['Manufacturing', '#3F5370'], ['Entertainment', '#243F55'], ['Wholesale', '#566881']
+  ['Agriculture', '#03624C'], ['Food', '#06302B'], ['Retail', '#17876D'], ['Services', '#2E7D6A'], ['Clothing', '#0B453A'],
+  ['Education', '#032221'], ['Housing', '#5C6868'], ['Personal Use', '#707D7D'], ['Arts', '#03624C'], ['Transportation', '#06302B'],
+  ['Health', '#17876D'], ['Construction', '#2E7D6A'], ['Manufacturing', '#0B453A'], ['Entertainment', '#032221'], ['Wholesale', '#5C6868']
 ];
 
 module.exports = ({ page, L, pos, visualFile, htmlVisual, dualEntry, CX }) => {
@@ -35,7 +35,7 @@ module.exports = ({ page, L, pos, visualFile, htmlVisual, dualEntry, CX }) => {
     },
     visualContainerObjects: {
       background: [props({ show: Lb(true), color: fillM('Color Card'), transparency: Ld(0) })],
-      border: [props({ show: Lb(true), color: fillM('Color Border'), radius: Ld(10), width: Ld(1) })],
+      border: [props({ show: Lb(true), color: fillM('Color Border'), radius: Ld(8), width: Ld(1) })],
       title: [props({ show: Lb(false) })],
       visualHeader: [props({ show: Lb(false) })],
       dropShadow: [props({ show: Lb(false) })],

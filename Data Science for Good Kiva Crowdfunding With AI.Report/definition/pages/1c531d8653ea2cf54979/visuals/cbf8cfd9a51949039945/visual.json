@@ -83,7 +83,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#457B9D'"
+                      "Value": "'#03624C'"
                     }
                   }
                 }
@@ -124,7 +124,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1D3557'"
+                      "Value": "'#06302B'"
                     }
                   }
                 }
@@ -165,7 +165,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#30566E'"
+                      "Value": "'#17876D'"
                     }
                   }
                 }
@@ -206,7 +206,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#5B8FB0'"
+                      "Value": "'#2E7D6A'"
                     }
                   }
                 }
@@ -247,7 +247,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#3F5370'"
+                      "Value": "'#0B453A'"
                     }
                   }
                 }
@@ -288,7 +288,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#243F55'"
+                      "Value": "'#032221'"
                     }
                   }
                 }
@@ -329,7 +329,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#566881'"
+                      "Value": "'#5C6868'"
                     }
                   }
                 }
@@ -370,7 +370,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#5E7B7C'"
+                      "Value": "'#707D7D'"
                     }
                   }
                 }
@@ -411,7 +411,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#457B9D'"
+                      "Value": "'#03624C'"
                     }
                   }
                 }
@@ -452,7 +452,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#1D3557'"
+                      "Value": "'#06302B'"
                     }
                   }
                 }
@@ -493,7 +493,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#30566E'"
+                      "Value": "'#17876D'"
                     }
                   }
                 }
@@ -534,7 +534,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#5B8FB0'"
+                      "Value": "'#2E7D6A'"
                     }
                   }
                 }
@@ -575,7 +575,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#3F5370'"
+                      "Value": "'#0B453A'"
                     }
                   }
                 }
@@ -616,7 +616,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#243F55'"
+                      "Value": "'#032221'"
                     }
                   }
                 }
@@ -657,7 +657,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#566881'"
+                      "Value": "'#5C6868'"
                     }
                   }
                 }
@@ -816,7 +816,7 @@
             "radius": {
               "expr": {
                 "Literal": {
-                  "Value": "12D"
+                  "Value": "8D"
                 }
               }
             },

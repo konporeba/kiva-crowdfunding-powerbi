@@ -63,11 +63,11 @@ module.exports = ({ page, PAGES, L, pos, visualFile, htmlVisual, CX }) => {
       subTotals: [props({ rowSubtotals: Lb(false), columnSubtotals: Lb(false) })],
       columnFormatting: [
         { properties: { dataBars: {
-          positiveColor: fillL('#A8DADC'), negativeColor: fillL('#E63946'), axisColor: fillL('#A8DADC'),
+          positiveColor: fillL('#2CC295'), negativeColor: fillL('#C8414B'), axisColor: fillL('#AACBC4'),
           reverseDirection: Lb(false), hideText: Lb(false)
         }, labelDisplayUnits: Ld(1000000), labelPrecision: L.Li(1) }, selector: { metadata: '_Measures.Total Loan Amount' } },
         { properties: { dataBars: {
-          positiveColor: fillL('#A8DADC'), negativeColor: fillL('#E63946'), axisColor: fillL('#A8DADC'),
+          positiveColor: fillL('#AACBC4'), negativeColor: fillL('#C8414B'), axisColor: fillL('#AACBC4'),
           reverseDirection: Lb(false), hideText: Lb(false)
         } }, selector: { metadata: '_Measures.Average Regional MPI' } }
       ]

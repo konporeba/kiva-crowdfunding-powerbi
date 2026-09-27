@@ -73,7 +73,7 @@ function visualFile(page, key, position, visual, extra = {}) {
 const shapeRect = ({ fill, radius = 0, outline }) => ({
   visualType: 'shape',
   objects: {
-    shape: [withSel({ tileShape: Ls(radius ? 'rectangleRoundedByPixel' : 'rectangle'), ...(radius ? { roundEdge: Li(radius) } : {}) }, 'default')],
+    shape: [withSel({ tileShape: Ls(radius ? 'rectangleRounded' : 'rectangle'), ...(radius ? { rectangleRoundedCurve: Li(radius) } : {}) }, 'default')],
     fill: [withSel({ show: Lb(true), fillColor: fill, transparency: Ld(0) }, 'default')],
     outline: [withSel(outline ? { show: Lb(true), lineColor: outline, weight: Ld(1), transparency: Ld(0) } : { show: Lb(false) }, 'default')]
   },
@@ -103,21 +103,21 @@ const shapeText = ({ text, size, color, bold = false, family = 'Segoe UI', align
 };
 
 // Button with optional custom icon, label and action.
-function button({ icon, text, action, fill, fillHover, textColor = fillL('#F1FAEE'), align = 'center', iconOnly = false, fontSize = 10, bold = false, tooltip }) {
+function button({ icon, text, textMeasure, action, fill, fillHover, textColor = fillL('#F1F7F6'), align = 'center', iconOnly = false, fontSize = 10, bold = false, tooltip }) {
   const states = ['default', 'hover', 'selected'];
   const objects = {
-    shape: [props({ tileShape: Ls('rectangleRoundedByPixel'), roundEdge: Li(10) })],
+    shape: [props({ tileShape: Ls('rectangleRoundedByPixel'), roundEdge: Li(8) })],
     fill: [
       withSel(fill ? { show: Lb(true), fillColor: fill, transparency: Ld(0) } : { show: Lb(true), fillColor: fillL('#FFFFFF'), transparency: Ld(100) }, 'default'),
       withSel(fill ? { show: Lb(true), fillColor: fill, transparency: Ld(0) } : { show: Lb(true), fillColor: fillL('#FFFFFF'), transparency: Ld(100) }, 'selected'),
-      withSel({ show: Lb(true), fillColor: fillHover || fillL('#A8DADC'), transparency: Ld(fillHover ? 0 : 82) }, 'hover')
+      withSel({ show: Lb(true), fillColor: fillHover || fillL('#AACBC4'), transparency: Ld(fillHover ? 0 : 82) }, 'hover')
     ],
     outline: states.map((s) => withSel({ show: Lb(false) }, s)),
     icon: states.map((s) => withSel(icon
       ? { show: Lb(true), shapeType: Ls('custom'), image: { image: { name: Ls(icon + '.svg'), url: imageRef(iconFile(icon)), scaling: Ls('Fit') } }, iconSize: Ld(22), placement: Ls(iconOnly ? 'custom' : 'left'), horizontalAlignment: Ls(iconOnly ? 'center' : 'left'), verticalAlignment: Ls('middle'), leftMargin: Li(iconOnly ? 0 : 12) }
       : { show: Lb(false) }, s)),
-    text: states.map((s) => withSel(text && !iconOnly
-      ? { show: Lb(true), text: Ls(text), fontColor: textColor, fontFamily: Ls(bold ? 'Segoe UI Semibold' : 'Segoe UI'), fontSize: Ld(fontSize), horizontalAlignment: Ls(align), verticalAlignment: Ls('middle'), leftMargin: Li(icon ? 8 : 14) }
+    text: states.map((s) => withSel((text || textMeasure) && !iconOnly
+      ? { show: Lb(true), text: textMeasure ? { expr: L.measureField(textMeasure) } : Ls(text), fontColor: textColor, fontFamily: Ls(bold ? 'Segoe UI Semibold' : 'Segoe UI'), fontSize: Ld(fontSize), horizontalAlignment: Ls(align), verticalAlignment: Ls('middle'), leftMargin: Li(icon ? 8 : 14) }
       : { show: Lb(false) }, s))
   };
   const link = action
@@ -132,27 +132,6 @@ const htmlVisual = (measure) => ({
   objects: { contentFormatting: [props({ showRawHtml: Lb(false), noDataMessage: Ls(' ') })] },
   visualContainerObjects: bareVCO()
 });
-
-function dropdownSlicer(s) {
-  return {
-    visualType: 'slicer',
-    syncGroup: { groupName: s.group, fieldChanges: true, filterChanges: true },
-    query: { queryState: { Values: { projections: [cProj(s.entity, s.column)] } } },
-    objects: {
-      data: [props({ mode: Ls('Dropdown') })],
-      header: [props({ show: Lb(true), text: Ls(s.label), fontColor: fillM('Color Text Muted'), textSize: Ld(9), fontFamily: Ls('Segoe UI Semibold') })],
-      items: [props({ fontColor: fillM('Color Text'), background: fillM('Color Card'), textSize: Ld(10), fontFamily: Ls('Segoe UI') })]
-    },
-    visualContainerObjects: {
-      background: [props({ show: Lb(true), color: fillM('Color Card'), transparency: Ld(0) })],
-      border: [props({ show: Lb(true), color: fillM('Color Border'), radius: Ld(10), width: Ld(1) })],
-      title: [props({ show: Lb(false) })],
-      dropShadow: [props({ show: Lb(false) })],
-      visualHeader: [props({ show: Lb(false) })],
-      padding: [props({ top: Ld(6), bottom: Ld(6), left: Ld(10), right: Ld(10) })]
-    }
-  };
-}
 
 // Light/Dark toggle: two icon tiles (sun / moon), single-select, Light pre-selected, synced on every page.
 function themeToggle() { return finishDual(themeToggleRaw()); }
@@ -169,16 +148,16 @@ function themeToggleRaw() {
     } },
     objects: {
       selection: [props({ singleSelect: Lb(true), strictSingleSelect: Lb(true), selectAllCheckboxEnabled: Lb(false) })],
-      layout: [props({ rowCount: Li(2), columnCount: Li(1), cellPadding: Li(6), backgroundShow: Lb(false), rectangleRoundedCurve: Li(10) })],
+      layout: [props({ rowCount: Li(2), columnCount: Li(1), cellPadding: Li(6), backgroundShow: Lb(false), rectangleRoundedCurve: Li(8) })],
       value: [props({ show: Lb(false) })],
       label: [
-        withSel({ show: Lb(true), fontSize: Ld(15), fontColor: fillL('#A8DADC'), horizontalAlignment: Ls('center'), position: Ls('aboveValue') }, 'default'),
-        withSel({ show: Lb(true), fontSize: Ld(15), fontColor: fillL('#F1FAEE'), horizontalAlignment: Ls('center') }, 'selected')
+        withSel({ show: Lb(true), fontSize: Ld(15), fontColor: fillL('#AACBC4'), horizontalAlignment: Ls('center'), position: Ls('aboveValue') }, 'default'),
+        withSel({ show: Lb(true), fontSize: Ld(15), fontColor: fillL('#F1F7F6'), horizontalAlignment: Ls('center') }, 'selected')
       ],
       background: ['default', 'selected', 'hover'].map((st) => withSel({ show: Lb(false) }, st)),
       fillCustom: [props({ show: Lb(false) })],
       outline: ['default', 'selected', 'hover'].map((s) => withSel({ show: Lb(false) }, s)),
-      shapeCustomRectangle: [props({ tileShape: Ls('rectangleRoundedByPixel'), rectangleRoundedCurve: Li(10) })],
+      shapeCustomRectangle: [props({ tileShape: Ls('rectangleRoundedByPixel'), rectangleRoundedCurve: Li(8) })],
       general: [props({
         filter: { filter: {
           Version: 2,
@@ -216,7 +195,7 @@ function chrome(page, bookmarks) {
   PAGES.filter((p) => p.nav).forEach((p, i) => {
     const current = p.key === page.key;
     add('rail-' + p.key, pos(8, NAV_Y0 + i * NAV_STEP, 48, NAV_H, 30300 + i),
-      button({ icon: p.icon, iconOnly: true, fill: current ? fillL('#457B9D') : null, action: current ? null : { type: 'PageNavigation', page: p.id }, tooltip: p.name }));
+      button({ icon: p.icon, iconOnly: true, fill: current ? fillM('Color Nav Active') : null, action: current ? null : { type: 'PageNavigation', page: p.id }, tooltip: p.name }));
   });
   add('theme-toggle', pos(8, 612, 48, 96, 30900), themeToggle());
 
@@ -230,28 +209,81 @@ function chrome(page, bookmarks) {
   } });
   const child = (key, position, visual) => add(key, position, visual, { parentGroupName: groupName });
   child('drawer-bg', pos(0, 0, DRAWER_W, H, 40010), shapeRect({ fill: fillM('Color Nav') }));
-  child('drawer-title', pos(8, 16, DRAWER_W - 16, 40, 40020), shapeText({ text: 'Kiva Impact', size: 15, color: fillL('#F1FAEE'), bold: true, family: 'Segoe UI Semibold' }));
-  child('drawer-close', pos(0, 72, DRAWER_W - 8, NAV_H, 40030), button({ icon: 'close', text: 'Collapse', align: 'left', textColor: fillL('#A8DADC'), action: { type: 'Bookmark', bookmark: bookmarks.close } }));
+  child('drawer-title', pos(8, 16, DRAWER_W - 16, 40, 40020), shapeText({ text: 'Kiva Impact', size: 15, color: fillL('#F1F7F6'), bold: true, family: 'Segoe UI Semibold' }));
+  child('drawer-close', pos(0, 72, DRAWER_W - 8, NAV_H, 40030), button({ icon: 'close', text: 'Collapse', align: 'left', textColor: fillL('#AACBC4'), action: { type: 'Bookmark', bookmark: bookmarks.close } }));
   PAGES.filter((p) => p.nav).forEach((p, i) => {
     const current = p.key === page.key;
     child('drawer-' + p.key, pos(0, NAV_Y0 + i * NAV_STEP, DRAWER_W - 8, NAV_H, 40100 + i),
-      button({ text: p.name, align: 'left', bold: current, fontSize: 10.5, textColor: fillL(current ? '#F1FAEE' : '#A8DADC'), fill: current ? fillL('#457B9D') : null, action: current ? { type: 'Bookmark', bookmark: bookmarks.close } : { type: 'PageNavigation', page: p.id } }));
+      button({ text: p.name, align: 'left', bold: current, fontSize: 10.5, textColor: fillL(current ? '#F1F7F6' : '#AACBC4'), fill: current ? fillM('Color Nav Active') : null, action: current ? { type: 'Bookmark', bookmark: bookmarks.close } : { type: 'PageNavigation', page: p.id } }));
   });
-  child('drawer-foot', pos(14, 640, DRAWER_W - 28, 56, 40200), shapeText({ text: 'Light / dark mode: use the toggle in the rail.', size: 8.5, color: fillL('#A8DADC') }));
+  child('drawer-foot', pos(14, 640, DRAWER_W - 28, 56, 40200), shapeText({ text: 'Light / dark mode: use the toggle in the rail.', size: 8.5, color: fillL('#AACBC4') }));
 
   // Page header + synced slicers (analysis pages only)
   if (page.key !== 'home') {
-    add('title', pos(CX, 14, 560, 34, 1000), shapeText({ text: page.name, size: 20, color: fillM('Color Text'), bold: true, family: 'Segoe UI Semibold', valign: 'top' }));
-    add('subtitle', pos(CX, 50, 560, 34, 1010), shapeText({ text: page.subtitle || '', size: 9.5, color: fillM('Color Text Muted'), valign: 'top' }));
+    add('title', pos(CX, 14, 520, 34, 1000), shapeText({ text: page.name, size: 20, color: fillM('Color Text'), bold: true, family: 'Segoe UI Semibold', valign: 'top' }));
+    add('subtitle', pos(CX, 50, 520, 34, 1010), shapeText({ text: page.subtitle || '', size: 9.5, color: fillM('Color Text Muted'), valign: 'top' }));
   }
   if (page.drillthrough) {
-    add('back', pos(W - 16 - 132, 22, 132, 40, 1100), button({ icon: 'close', text: 'Back', align: 'left', fill: fillL('#457B9D'), fillHover: fillL('#30566E'), action: { type: 'Back' }, tooltip: 'Back to the previous page' }));
+    add('back', pos(W - 16 - 132, 22, 132, 40, 1100), button({ icon: 'close', text: 'Back', align: 'left', fill: fillM('Color Nav'), fillHover: fillM('Color Nav Active'), action: { type: 'Back' }, tooltip: 'Back to the previous page' }));
   }
-  if (page.slicers) {
-    const sw = 150, gap = 10, x0 = W - 16 - (SLICERS.length * sw + (SLICERS.length - 1) * gap);
-    SLICERS.forEach((s, i) => add('slicer-' + s.key, pos(x0 + i * (sw + gap), 10, sw, 76, 1100 + i), dropdownSlicer(s)));
-  }
+  if (page.slicers) filterChrome(page, add, bookmarks);
   return out;
+}
+
+// ---------------------------------------------------------------- filter drawer
+// Header: active-filter chips (HTML) + a Filters button whose label shows the active count.
+// Drawer (hidden group, right side): Year tiles, World Region list, Country dropdown, Sector list.
+const FILTER_W = 340;
+function filterChrome(page, add, bookmarks) {
+  const btnW = 140;
+  add('filters-chips', pos(W - 16 - btnW - 12 - 470, 26, 470, 44, 1080), htmlVisual('HTML Active Filters'));
+  add('filters-button', pos(W - 16 - btnW, 28, btnW, 40, 1090),
+    button({ icon: 'filter', textMeasure: 'Filter Button Label', align: 'left', bold: true, fontSize: 10.5,
+      fill: fillM('Color Nav'), fillHover: fillM('Color Nav Active'), action: { type: 'Bookmark', bookmark: bookmarks.fopen }, tooltip: 'Open filters' }));
+
+  const groupName = hid(`${page.key}:filters`);
+  add('filters', { x: W - FILTER_W, y: 0, z: 45000, height: H, width: FILTER_W, tabOrder: 45000 }, undefined, {
+    visualGroup: { displayName: 'Filter drawer', groupMode: 'ScaleMode' }, isHidden: !process.env.KIVA_FILTERS_OPEN
+  });
+  const child = (key, position, visual) => add(key, position, visual, { parentGroupName: groupName });
+  child('filters-bg', pos(0, 0, FILTER_W, H, 45010), {
+    ...shapeRect({ fill: fillM('Color Card') }),
+    visualContainerObjects: bareVCO({ dropShadow: [props({ show: Lb(true), position: Ls('Outer'), preset: Ls('Custom'), angle: Ld(180), shadowDistance: Ld(2), shadowBlur: Ld(18), transparency: Ld(78), color: fillL('#021B1A') })] })
+  });
+  child('filters-edge', pos(0, 0, 3, H, 45011), shapeRect({ fill: fillM('Color Accent') }));
+  child('filters-title', pos(24, 22, 200, 30, 45020), shapeText({ text: 'Filters', size: 16, color: fillM('Color Text'), bold: true, family: 'Segoe UI Semibold' }));
+  child('filters-sub', pos(24, 52, 260, 20, 45021), shapeText({ text: 'Applied to every analysis page', size: 9, color: fillM('Color Text Muted') }));
+  child('filters-close', pos(FILTER_W - 56, 20, 40, 40, 45030), button({ icon: 'xclose', iconOnly: true, fillHover: fillM('Color Border'), action: { type: 'Bookmark', bookmark: bookmarks.fclose }, tooltip: 'Close filters' }));
+  const S = Object.fromEntries(SLICERS.map((s) => [s.key, s]));
+  child('slicer-year', pos(12, 84, FILTER_W - 28, 76, 45100), drawerSlicer(S.year, 'tiles'));
+  child('slicer-region', pos(12, 164, FILTER_W - 28, 232, 45110), drawerSlicer(S.region, 'list'));
+  child('slicer-country', pos(12, 400, FILTER_W - 28, 76, 45120), drawerSlicer(S.country, 'dropdown'));
+  child('slicer-sector', pos(12, 480, FILTER_W - 28, 228, 45130), drawerSlicer(S.sector, 'list'));
+}
+function drawerSlicer(s, style) {
+  const mode = { tiles: 'Basic', list: 'Basic', dropdown: 'Dropdown' }[style];
+  const general = style === 'tiles' ? [props({ orientation: Ld(1) })] : undefined;
+  const v = {
+    visualType: 'slicer',
+    syncGroup: { groupName: s.group, fieldChanges: true, filterChanges: true },
+    query: { queryState: { Values: { projections: [cProj(s.entity, s.column)] } } },
+    objects: {
+      data: [props({ mode: Ls(mode) })],
+      selection: [props({ selectAllCheckboxEnabled: Lb(style === 'list'), singleSelect: Lb(false) })],
+      header: [props({ show: Lb(true), text: Ls(s.label.toUpperCase()), fontColor: fillM('Color Text Muted'), textSize: Ld(8.5), fontFamily: Ls('Segoe UI Semibold') })],
+      items: [props({ fontColor: fillM('Color Text'), background: fillM('Color Card'), textSize: Ld(10), fontFamily: Ls('Segoe UI'), padding: Ld(2) })]
+    },
+    visualContainerObjects: {
+      background: [props({ show: Lb(false) })],
+      border: [props({ show: Lb(false) })],
+      title: [props({ show: Lb(false) })],
+      dropShadow: [props({ show: Lb(false) })],
+      visualHeader: [props({ show: Lb(false) })],
+      padding: [props({ top: Ld(4), bottom: Ld(4), left: Ld(8), right: Ld(8) })]
+    }
+  };
+  if (general) v.objects.general = general;
+  return v;
 }
 
 // ---------------------------------------------------------------- write
@@ -279,11 +311,12 @@ function main() {
 
   for (const page of PAGES) {
     zCounter = 2000;
-    const bm = { open: 'Bookmark' + hid(`bm-open:${page.key}`), close: 'Bookmark' + hid(`bm-close:${page.key}`) };
+    const bm = { open: 'Bookmark' + hid(`bm-open:${page.key}`), close: 'Bookmark' + hid(`bm-close:${page.key}`),
+      fopen: 'Bookmark' + hid(`bm-fopen:${page.key}`), fclose: 'Bookmark' + hid(`bm-fclose:${page.key}`) };
     const pageDir = path.join(pagesDir, page.id);
     fs.mkdirSync(path.join(pageDir, 'visuals'), { recursive: true });
     const pageJson = { $schema: L.SCHEMA.page, name: page.id, displayName: page.name, displayOption: 'FitToPage', height: page.height || H, width: page.width || W,
-      objects: { outspace: [props({ color: fillL('#F1FAEE') })] } };
+      objects: { outspace: [props({ color: fillL('#F1F7F6') })] } };
     if (page.hidden) pageJson.visibility = 'HiddenInViewMode';
     if (page.tooltip) {
       pageJson.type = 'Tooltip';
@@ -313,16 +346,19 @@ function main() {
     }
 
     // Nav drawer bookmarks: toggle only the drawer group, keep data/filters/theme untouched.
-    for (const [kind, hidden] of (page.tooltip ? [] : [['open', false], ['close', true]])) {
+    const filterGroup = hid(`${page.key}:filters`);
+    const pairs = page.tooltip ? [] : [['open', false, drawer, 'Nav Open'], ['close', true, drawer, 'Nav Close']];
+    if (page.slicers) pairs.push(['fopen', false, filterGroup, 'Filters Open'], ['fclose', true, filterGroup, 'Filters Close']);
+    for (const [kind, hidden, group, label] of pairs) {
       const b = {
         $schema: L.SCHEMA.bookmark,
-        displayName: `Nav ${kind === 'open' ? 'Open' : 'Close'} - ${page.name}`,
+        displayName: `${label} - ${page.name}`,
         name: bm[kind],
-        options: { targetVisualNames: [drawer], applyOnlyToTargetVisuals: true, suppressData: true, suppressActiveSection: true },
+        options: { targetVisualNames: [group], applyOnlyToTargetVisuals: true, suppressData: true, suppressActiveSection: true },
         explorationState: {
           version: '1.3',
           activeSection: page.id,
-          sections: { [page.id]: { visualContainers: {}, visualContainerGroups: { [drawer]: { isHidden: hidden } } } }
+          sections: { [page.id]: { visualContainers: {}, visualContainerGroups: { [group]: { isHidden: hidden } } } }
         }
       };
       fs.writeFileSync(path.join(bookmarkDir, bm[kind] + '.bookmark.json'), JSON.stringify(b, null, 2));
@@ -331,7 +367,7 @@ function main() {
   }
   fs.writeFileSync(path.join(bookmarkDir, 'bookmarks.json'), JSON.stringify({
     $schema: L.SCHEMA.bookmarks,
-    items: [{ name: 'Bookmark' + hid('bm-group:nav'), displayName: 'Navigation (drawer)', children: bookmarkNames }]
+    items: [{ name: 'Bookmark' + hid('bm-group:nav'), displayName: 'Navigation & filter drawers', children: bookmarkNames }]
   }, null, 2));
 
   fs.writeFileSync(path.join(pagesDir, 'pages.json'), JSON.stringify({

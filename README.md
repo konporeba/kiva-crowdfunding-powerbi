@@ -14,11 +14,7 @@ Modeling MCP server and the PBIR authoring CLIs.
 | Light mode | Dark mode |
 |---|---|
 | ![Home, light](docs/screenshots/home-light.png) | ![Home, dark](docs/screenshots/home-dark.png) |
-
-![Overview page](docs/screenshots/overview-light.png)
-
-> **Status:** all 11 pages are built. Polish (a dark-mode review of every page and a few
-> rendering quirks) is still in progress.
+| ![Overview, light](docs/screenshots/overview-light.png) | ![Overview, dark](docs/screenshots/overview-dark.png) |
 
 ## Highlights
 
@@ -26,30 +22,40 @@ Modeling MCP server and the PBIR authoring CLIs.
   `Countries`, `Field Partners` and `Date` dimensions. `MPI Regions` and
   `Themes By Region` hang off the same dimensions. All relationships are 1:many and
   single-direction.
-- **60 documented measures** in a `_Measures` table, each with a
+- **69 documented measures** in a `_Measures` table, each with a
   *Purpose / Logic / Used in* comment header, a description, a format string and a
   display folder: lending volume, funding gap, gender, funding speed, poverty (MPI)
   coverage, partners and themes.
 - **Animated HTML visuals** (HTML Content custom visual): hero stats, sparklines that
   draw themselves, progress rings, leaderboards and narrative insight cards that
   update with every filter.
-- **Light/dark mode:** a synced toggle drives `Color *` measures bound to backgrounds,
-  text and data colours, plus CSS variables inside every HTML visual.
+- **Light/dark mode:** a synced toggle drives role-based `Color *` measures bound to
+  backgrounds, text and data colours, plus CSS variables inside every HTML visual.
 - **Collapsible nav rail:** icon rail plus an expandable labelled drawer (bookmark
-  pairs per page), and filters (Year, World Region, Country, Sector) synced across pages.
+  pairs per page).
+- **Filter drawer:** a Filters button showing the active count opens a side panel
+  (Year tiles, World Region and Sector checklists, searchable Country), synced across
+  pages. Header chips summarise what is filtered.
 - **Honest data handling:** MPI placeholder rows removed, country spellings
   reconciled, 29 loan countries without MPI data surfaced through an *MPI Coverage %*
   measure instead of silently blanked, and partial months and data errors flagged.
 
 ## Design system
 
-| Token | Hex | Use |
+A role-based green palette: every element is designed once by role, and the light/dark
+toggle only swaps the values.
+
+| Role | Light (default) | Dark |
 |---|---|---|
-| Punch Red | `#E63946` | Alerts and the funding gap only |
-| Honeydew | `#F1FAEE` | Page background (light) / text (dark) |
-| Frosted Blue | `#A8DADC` | Secondary series, borders, dark-mode accent |
-| Cerulean | `#457B9D` | Primary series, interactive elements |
-| Oxford Navy | `#1D3557` | Navigation, titles, dark cards |
+| Page background | Anti-Flash White `#F1F7F6` | Rich Black `#021B1A` |
+| Cards / visuals | White `#FFFFFF` | Dark Green `#032221` |
+| Header bar / elevated panels | Bangladesh Green `#03624C` | Pine `#06302B` |
+| Primary text | Rich Black `#021B1A` | Anti-Flash White `#F1F7F6` |
+| Secondary text | Stone `#707D7D` | Pistachio `#AACBC4` |
+| Borders & gridlines | Pistachio `#AACBC4` | Basil `#0B453A` |
+| Accent | Bangladesh Green `#03624C` | Caribbean Green `#00DF81` |
+| Hover / secondary accent | Frog `#17876D` | Mountain Meadow `#2CC295` |
+| Good / Warning / Bad | `#17876D` / `#D99A1E` / `#C8414B` | `#00DF81` / `#F2C14E` / `#FF6B6B` |
 
 ## Report pages
 
