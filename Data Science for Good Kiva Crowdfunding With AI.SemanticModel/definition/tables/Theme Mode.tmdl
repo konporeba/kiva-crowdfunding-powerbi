@@ -1,0 +1,32 @@
+/// Two-row switch table (Light, Dark) behind the report's light/dark toggle. A synced single-select slicer in the nav rail filters it; the Color * and HTML measures read the selection via SELECTEDVALUE and fall back to Light.
+table 'Theme Mode'
+	lineageTag: 9a1fa78b-acfb-41ef-994f-4ed569815a01
+
+	/// Light or Dark. Drives the Color * and HTML measures.
+	column Mode
+		lineageTag: 88fdf893-fff1-4bc5-b3f1-9d15d7016551
+		isNameInferred
+		sourceColumn: [Mode]
+		sortByColumn: 'Mode Order'
+
+	/// Sort key for Mode (Light first).
+	column 'Mode Order'
+		isHidden
+		lineageTag: 6e385478-2e44-4faf-8d90-239e576d9e7b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mode Order]
+
+	partition 'Theme Mode' = calculated
+		mode: import
+		source =
+				-- Disconnected switch table for the light/dark toggle (no relationships).
+				DATATABLE(
+				    "Mode", STRING,
+				    "Mode Order", INTEGER,
+				    {
+				        { "Light", 1 },
+				        { "Dark", 2 }
+				    }
+				)
+

@@ -1,0 +1,218 @@
+/// Field partner loan themes by region (loan_themes_by_region_data.csv): partners, amounts, geocodes and rural share.
+table 'Themes By Region'
+	lineageTag: e4409643-b2e9-4ec3-b9e2-35f816ebbf33
+
+	/// Foreign key to Field Partners[Partner ID].
+	column 'Partner ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 75f3e6ac-4ecf-4a31-8d2d-14c8053f76b8
+		summarizeBy: none
+		sourceColumn: Partner ID
+
+	/// Duplicate of Field Partners[Field Partner Name]; use that column in visuals.
+	column 'Field Partner Name'
+		dataType: string
+		isHidden
+		lineageTag: 29ce7ebb-5153-4aa7-a4b0-246e915286f5
+		summarizeBy: none
+		sourceColumn: Field Partner Name
+
+	column sector
+		dataType: string
+		lineageTag: 57a5ecb0-0e2f-47ca-9217-200bef921c34
+		summarizeBy: none
+		sourceColumn: sector
+
+	column 'Loan Theme ID'
+		dataType: string
+		lineageTag: e39377bd-81f6-4779-8e63-9665258cddce
+		summarizeBy: none
+		sourceColumn: Loan Theme ID
+
+	column 'Loan Theme Type'
+		dataType: string
+		lineageTag: 3a6fa917-5204-4424-99fa-e22853f7530a
+		summarizeBy: none
+		sourceColumn: Loan Theme Type
+
+	/// Foreign key to Countries[Country].
+	column country
+		dataType: string
+		isHidden
+		lineageTag: ef911d40-c74d-44e7-9c81-c93d108efa4e
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: country
+
+	column forkiva
+		dataType: string
+		lineageTag: 64676531-ac81-488f-b0fd-b8d128607b4e
+		summarizeBy: none
+		sourceColumn: forkiva
+
+	column region
+		dataType: string
+		lineageTag: 440731e2-2f29-4c0f-9040-6bdb964bde1e
+		dataCategory: Place
+		summarizeBy: none
+		sourceColumn: region
+
+	column geocode_old
+		dataType: string
+		lineageTag: 1a48274a-dcd3-4679-97e3-542c529d610e
+		summarizeBy: none
+		sourceColumn: geocode_old
+
+	column ISO
+		dataType: string
+		lineageTag: b4c4d8e9-99b1-49ab-9096-f8aa0111e286
+		summarizeBy: none
+		sourceColumn: ISO
+
+	column number
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: dd0da95c-5f86-4402-b41d-99d9350f7309
+		summarizeBy: none
+		sourceColumn: number
+
+	column amount
+		dataType: decimal
+		isHidden
+		formatString: $#,0.00
+		lineageTag: af1ce01c-fc84-4479-b67c-82701ac6beca
+		summarizeBy: none
+		sourceColumn: amount
+
+	column LocationName
+		dataType: string
+		lineageTag: f0932932-cf62-4dc0-8330-5b019f9fa3fc
+		summarizeBy: none
+		sourceColumn: LocationName
+
+	column geocode
+		dataType: string
+		lineageTag: 0bfc23f8-7835-43d7-843c-b5c219551737
+		summarizeBy: none
+		sourceColumn: geocode
+
+	column names
+		dataType: string
+		lineageTag: afa5b45d-101b-4f48-95ba-7bc1b3bdc3e6
+		summarizeBy: none
+		sourceColumn: names
+
+	column geo
+		dataType: string
+		lineageTag: 4e24613d-c1c5-478a-8730-3c6be33cf792
+		summarizeBy: none
+		sourceColumn: geo
+
+	column lat
+		dataType: double
+		formatString: 0.0000
+		lineageTag: 60bae5a2-3b9a-4ff4-9d5d-b718dd805d5c
+		dataCategory: Latitude
+		summarizeBy: none
+		sourceColumn: lat
+
+	column lon
+		dataType: double
+		formatString: 0.0000
+		lineageTag: b7a2f4cc-cdc9-4ee3-bd4e-3d5aae101ac1
+		dataCategory: Longitude
+		summarizeBy: none
+		sourceColumn: lon
+
+	column mpi_region
+		dataType: string
+		lineageTag: eea34fce-2e65-42fb-98de-b5fb0185dabe
+		summarizeBy: none
+		sourceColumn: mpi_region
+
+	column mpi_geo
+		dataType: string
+		lineageTag: dd4c4567-0b53-4a16-88bf-10b81c73b87a
+		summarizeBy: none
+		sourceColumn: mpi_geo
+
+	/// Share of the partner's borrowers in this region who are rural, 0-100. Aggregate via the Rural % measure.
+	column rural_pct
+		dataType: double
+		isHidden
+		formatString: 0.0
+		lineageTag: 4be2773c-31f2-4e0b-8750-ccd8e0df7aa9
+		summarizeBy: none
+		sourceColumn: rural_pct
+
+	partition 'Themes By Region' = m
+		mode: import
+		source =
+				let
+				    // Raw CSV rows, everything still text (see stg_ThemesByRegion_Raw)
+				    Source = stg_ThemesByRegion_Raw,
+				    // Convert every column to its final type using the en-US culture, so numbers and ISO timestamps parse the same on any machine.
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        Source,
+				        {
+				            {"Partner ID", Int64.Type},
+				            {"Field Partner Name", type text},
+				            {"sector", type text},
+				            {"Loan Theme ID", type text},
+				            {"Loan Theme Type", type text},
+				            {"country", type text},
+				            {"forkiva", type text},
+				            {"region", type text},
+				            {"geocode_old", type text},
+				            {"ISO", type text},
+				            {"number", Int64.Type},
+				            {"amount", Currency.Type},
+				            {"LocationName", type text},
+				            {"geocode", type text},
+				            {"names", type text},
+				            {"geo", type text},
+				            {"lat", type number},
+				            {"lon", type number},
+				            {"mpi_region", type text},
+				            {"mpi_geo", type text},
+				            {"rural_pct", type number}
+				        },
+				        "en-US"
+				    ),
+				    // Strip leading and trailing whitespace from all text columns.
+				    #"Trimmed Text" = Table.TransformColumns(
+				        #"Changed Types",
+				        {
+				            {"Field Partner Name", Text.Trim, type text},
+				            {"sector", Text.Trim, type text},
+				            {"Loan Theme ID", Text.Trim, type text},
+				            {"Loan Theme Type", Text.Trim, type text},
+				            {"country", Text.Trim, type text},
+				            {"forkiva", Text.Trim, type text},
+				            {"region", Text.Trim, type text},
+				            {"geocode_old", Text.Trim, type text},
+				            {"ISO", Text.Trim, type text},
+				            {"LocationName", Text.Trim, type text},
+				            {"geocode", Text.Trim, type text},
+				            {"names", Text.Trim, type text},
+				            {"geo", Text.Trim, type text},
+				            {"mpi_region", Text.Trim, type text},
+				            {"mpi_geo", Text.Trim, type text}
+				        }
+				    ),
+				    // Turn empty strings left after trimming into real nulls so blanks are counted consistently.
+				    #"Replaced Blank Text With Null" = Table.ReplaceValue(
+				        #"Trimmed Text",
+				        "",
+				        null,
+				        Replacer.ReplaceValue,
+				        {"Field Partner Name", "sector", "Loan Theme ID", "Loan Theme Type", "country", "forkiva", "region", "geocode_old", "ISO", "LocationName", "geocode", "names", "geo", "mpi_region", "mpi_geo"}
+				    ),
+				    // Drop rows in which every column is null or blank.
+				    #"Removed Empty Rows" = Table.SelectRows(#"Replaced Blank Text With Null", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null})))
+				in
+				    #"Removed Empty Rows"
+

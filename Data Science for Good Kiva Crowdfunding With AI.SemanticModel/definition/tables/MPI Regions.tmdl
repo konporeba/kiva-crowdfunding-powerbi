@@ -1,0 +1,141 @@
+/// Multidimensional Poverty Index by sub-national region (kiva_mpi_region_locations.csv) with coordinates and world region.
+table 'MPI Regions'
+	lineageTag: ca6d2e35-6314-4220-a76b-d61a1f65824f
+
+	column LocationName
+		dataType: string
+		lineageTag: dcd114ba-cacb-4be8-97d9-c0dde50cf22d
+		summarizeBy: none
+		sourceColumn: LocationName
+
+	column ISO
+		dataType: string
+		lineageTag: 4ac3289e-2c84-45e3-ba02-72452c0981ff
+		summarizeBy: none
+		sourceColumn: ISO
+
+	/// Country name as spelled in the MPI source file. Use Countries[Country] in visuals.
+	column country
+		dataType: string
+		isHidden
+		lineageTag: c2ff1700-b71b-4d77-98a9-2d57538c407f
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: country
+
+	column region
+		dataType: string
+		lineageTag: 51b9f0bd-e09a-4a3d-b4b2-921b4127aa8a
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: region
+
+	column world_region
+		dataType: string
+		lineageTag: f87cce9b-521f-44b1-bc89-336183da2560
+		summarizeBy: none
+		sourceColumn: world_region
+
+	column MPI
+		dataType: double
+		isHidden
+		formatString: 0.000
+		lineageTag: 61b82646-b9a3-4785-846c-574115a8828d
+		summarizeBy: none
+		sourceColumn: MPI
+
+	column geo
+		dataType: string
+		lineageTag: 24800afd-fea7-4229-a6dd-5ca38c165e1c
+		summarizeBy: none
+		sourceColumn: geo
+
+	column lat
+		dataType: double
+		formatString: 0.0000
+		lineageTag: a7495ff3-ca8c-43b0-9ed0-6081a3a4f0b4
+		dataCategory: Latitude
+		summarizeBy: none
+		sourceColumn: lat
+
+	column lon
+		dataType: double
+		formatString: 0.0000
+		lineageTag: 8e2b1363-a336-4987-9107-5d019df3a07d
+		dataCategory: Longitude
+		summarizeBy: none
+		sourceColumn: lon
+
+	/// Country name in the Loans spelling; foreign key to Countries[Country].
+	column country_kiva
+		dataType: string
+		isHidden
+		lineageTag: 9bb06168-4da9-4df7-9c91-ec28bc934987
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: country_kiva
+
+	partition 'MPI Regions' = m
+		mode: import
+		source =
+				let
+				    // Raw CSV rows, everything still text (see stg_MPI_Raw)
+				    Source = stg_MPI_Raw,
+				    // Convert every column to its final type using the en-US culture, so numbers and ISO timestamps parse the same on any machine.
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        Source,
+				        {
+				            {"LocationName", type text},
+				            {"ISO", type text},
+				            {"country", type text},
+				            {"region", type text},
+				            {"world_region", type text},
+				            {"MPI", type number},
+				            {"geo", type text},
+				            {"lat", type number},
+				            {"lon", type number}
+				        },
+				        "en-US"
+				    ),
+				    // Strip leading and trailing whitespace from all text columns.
+				    #"Trimmed Text" = Table.TransformColumns(
+				        #"Changed Types",
+				        {
+				            {"LocationName", Text.Trim, type text},
+				            {"ISO", Text.Trim, type text},
+				            {"country", Text.Trim, type text},
+				            {"region", Text.Trim, type text},
+				            {"world_region", Text.Trim, type text},
+				            {"geo", Text.Trim, type text}
+				        }
+				    ),
+				    // Turn empty strings left after trimming into real nulls so blanks are counted consistently.
+				    #"Replaced Blank Text With Null" = Table.ReplaceValue(
+				        #"Trimmed Text",
+				        "",
+				        null,
+				        Replacer.ReplaceValue,
+				        {"LocationName", "ISO", "country", "region", "world_region", "geo"}
+				    ),
+				    // Drop rows in which every column is null or blank.
+				    #"Removed Empty Rows" = Table.SelectRows(#"Replaced Blank Text With Null", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+				    // 1,764 of the 2,772 rows hold only a (1000.0, 1000.0) placeholder in geo. Keep rows that have a location name or a country.
+				    #"Removed Placeholder Rows" = Table.SelectRows(#"Removed Empty Rows", each [LocationName] <> null or [country] <> null),
+				    // (1000.0, 1000.0) is a sentinel for unknown coordinates, not a real point. Null it so maps ignore it.
+				    #"Nulled Placeholder Geo" = Table.ReplaceValue(
+				        #"Removed Placeholder Rows",
+				        "(1000.0, 1000.0)",
+				        null,
+				        Replacer.ReplaceValue,
+				        {"geo"}
+				    ),
+				    // Add the kiva_loans spelling of each country, defaulting to the MPI spelling when no fix is needed.
+				    #"Added Kiva Country Name" = Table.AddColumn(
+				        #"Nulled Placeholder Geo",
+				        "country_kiva",
+				        each if [country] = null then null else Record.FieldOrDefault(stg_KivaCountryMap, [country], [country]),
+				        type text
+				    )
+				in
+				    #"Added Kiva Country Name"
+

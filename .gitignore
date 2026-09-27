@@ -1,0 +1,10 @@
+# Power BI Desktop local state
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Source data (download from Kaggle - see README). kiva_loans_data.csv alone is ~187 MB.
+*.csv
+
+# Local backups and build scratch output
+_backup/
+_build/validate.json

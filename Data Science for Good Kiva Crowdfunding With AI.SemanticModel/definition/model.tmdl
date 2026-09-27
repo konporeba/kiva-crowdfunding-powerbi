@@ -1,0 +1,26 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode","MCP-PBIModeling"]
+
+annotation PBI_QueryOrder = ["Loans","MPI Regions","Themes By Region","Date","_Measures","pDataFolder","stg_Loans_Raw","stg_MPI_Raw","stg_LoanThemes_Raw","stg_ThemesByRegion_Raw","stg_KivaCountryMap"]
+
+ref table Loans
+ref table 'MPI Regions'
+ref table 'Themes By Region'
+ref table Countries
+ref table 'Field Partners'
+ref table Date
+ref table _Measures
+ref table 'Theme Mode'
+
+ref cultureInfo en-US
+

@@ -1,0 +1,72 @@
+expression pDataFolder = "X:\Data Science for Good Kiva Crowdfunding\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: d7b95670-399f-40c4-b3f4-764165ddec75
+
+	annotation PBI_ResultType = Text
+
+expression stg_Loans_Raw =
+		let
+		    // Read the CSV as text. QuoteStyle.Csv keeps quoted line breaks inside one field (the 'use' column has them).
+		    #"Loaded Csv File" = Csv.Document(File.Contents(pDataFolder & "kiva_loans_data.csv"), [Delimiter = ",", Columns = 20, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		    // The first row holds the column names.
+		    #"Promoted Headers" = Table.PromoteHeaders(#"Loaded Csv File", [PromoteAllScalars = true])
+		in
+		    #"Promoted Headers"
+	lineageTag: 3905a3cd-37fe-4915-81fc-b528f29061d8
+
+	annotation PBI_ResultType = Table
+
+expression stg_MPI_Raw =
+		let
+		    // Read the CSV as text. QuoteStyle.Csv keeps quoted line breaks inside one field (the 'use' column has them).
+		    #"Loaded Csv File" = Csv.Document(File.Contents(pDataFolder & "kiva_mpi_region_locations.csv"), [Delimiter = ",", Columns = 9, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		    // The first row holds the column names.
+		    #"Promoted Headers" = Table.PromoteHeaders(#"Loaded Csv File", [PromoteAllScalars = true])
+		in
+		    #"Promoted Headers"
+	lineageTag: 3aaed41f-017b-41e1-93a7-d0fcc2d883e9
+
+	annotation PBI_ResultType = Table
+
+expression stg_LoanThemes_Raw =
+		let
+		    // Read the CSV as text. QuoteStyle.Csv keeps quoted line breaks inside one field (the 'use' column has them).
+		    #"Loaded Csv File" = Csv.Document(File.Contents(pDataFolder & "loan_theme_ids_data.csv"), [Delimiter = ",", Columns = 4, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		    // The first row holds the column names.
+		    #"Promoted Headers" = Table.PromoteHeaders(#"Loaded Csv File", [PromoteAllScalars = true])
+		in
+		    #"Promoted Headers"
+	lineageTag: c86cada2-4645-492b-9f84-e168f8164698
+
+	annotation PBI_ResultType = Table
+
+expression stg_ThemesByRegion_Raw =
+		let
+		    // Read the CSV as text. QuoteStyle.Csv keeps quoted line breaks inside one field (the 'use' column has them).
+		    #"Loaded Csv File" = Csv.Document(File.Contents(pDataFolder & "loan_themes_by_region_data.csv"), [Delimiter = ",", Columns = 21, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		    // The first row holds the column names.
+		    #"Promoted Headers" = Table.PromoteHeaders(#"Loaded Csv File", [PromoteAllScalars = true])
+		in
+		    #"Promoted Headers"
+	lineageTag: 23e6da6d-e56c-47f5-b3fe-b0ca898e0271
+
+	annotation PBI_ResultType = Table
+
+expression stg_KivaCountryMap =
+		let
+		    // MPI spells nine country names differently from kiva_loans; this lets the two files be related by country.
+		    // The 'ofa' in Palestine is a footnote marker fused into the source text, not a typo introduced here.
+		    #"Defined MPI To Kiva Country Map" = [
+		        #"Bolivia, Plurinational State of" = "Bolivia",
+		        #"Congo, Republic of" = "Congo",
+		        #"Cote d'Ivoire" = "Cote D'Ivoire",
+		        #"Moldova, Republic of" = "Moldova",
+		        #"Myanmar" = "Myanmar (Burma)",
+		        #"Palestine, State ofa" = "Palestine",
+		        #"Tanzania, United Republic of" = "Tanzania",
+		        #"Congo, Democratic Republic of the" = "The Democratic Republic of the Congo",
+		        #"Viet Nam" = "Vietnam"
+		    ]
+		in
+		    #"Defined MPI To Kiva Country Map"
+	lineageTag: fed772a9-c8e9-4d1e-8edb-9b7c7181a325
+

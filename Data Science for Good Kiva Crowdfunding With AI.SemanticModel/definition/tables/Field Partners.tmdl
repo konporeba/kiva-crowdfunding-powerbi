@@ -1,0 +1,51 @@
+/// One row per Kiva field partner referenced by Loans or Themes By Region (372). Names come from Themes By Region; 70 partners that appear only in Loans have no name in any source file and are labelled 'Partner <id> (name not in source)'. 13,507 loans have no partner id at all.
+table 'Field Partners'
+	lineageTag: 4a9a0af7-6269-4851-a048-c9ff65408428
+
+	/// Kiva field partner id. Key for relationships from Loans and Themes By Region.
+	column 'Partner ID'
+		isKey
+		formatString: 0
+		lineageTag: 2414f339-be2c-4a73-bb2d-f74a778804da
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Partner ID]
+
+	/// Partner name from Themes By Region, or 'Partner <id> (name not in source)' for the 70 partners that appear only in Loans.
+	column 'Field Partner Name'
+		lineageTag: ea9dd500-c0b1-4835-80ed-7eafa0594b88
+		isNameInferred
+		sourceColumn: [Field Partner Name]
+
+	/// No for the 70 partners whose name is missing from every source file.
+	column 'Has Name In Source'
+		lineageTag: b42d3877-18ef-4faa-bb75-d508d5feea09
+		isNameInferred
+		sourceColumn: [Has Name In Source]
+
+	partition 'Field Partners' = calculated
+		mode: import
+		source =
+				-- Field partner dimension shared by Loans and Themes By Region.
+				VAR _partnerNames =
+				    SELECTCOLUMNS(
+				        SUMMARIZE('Themes By Region', 'Themes By Region'[Partner ID], 'Themes By Region'[Field Partner Name]),
+				        "@Id", 'Themes By Region'[Partner ID],
+				        "@Name", 'Themes By Region'[Field Partner Name]
+				    )
+				VAR _allPartnerIds =
+				    FILTER(
+				        DISTINCT(UNION(DISTINCT('Loans'[partner_id]), DISTINCT('Themes By Region'[Partner ID]))),
+				        NOT ISBLANK([partner_id])
+				    )
+				RETURN
+				    SELECTCOLUMNS(
+				        _allPartnerIds,
+				        "Partner ID", [partner_id],
+				        "Field Partner Name", COALESCE(
+				            MAXX(FILTER(_partnerNames, [@Id] = EARLIER([partner_id])), [@Name]),
+				            "Partner " & [partner_id] & " (name not in source)"
+				        ),
+				        "Has Name In Source", IF(ISBLANK(MAXX(FILTER(_partnerNames, [@Id] = EARLIER([partner_id])), [@Name])), "No", "Yes")
+				    )
+

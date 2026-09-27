@@ -1,0 +1,382 @@
+/// One row per Kiva loan (kiva_loans_data.csv): amounts, sector, country, timing, lenders and borrower genders.
+table Loans
+	lineageTag: 9c447d02-cdaa-4b00-a4a5-d5e44d807533
+
+	column id
+		dataType: int64
+		isHidden
+		formatString: 0
+		isAvailableInMdx: false
+		lineageTag: fc458fe1-dc15-4a41-9ff6-1bee0aefcd51
+		summarizeBy: none
+		sourceColumn: id
+
+	column funded_amount
+		dataType: decimal
+		isHidden
+		formatString: $#,0.00
+		isAvailableInMdx: false
+		lineageTag: 08f0b1af-6d00-4081-8e00-76a2a3f75831
+		summarizeBy: none
+		sourceColumn: funded_amount
+
+	column loan_amount
+		dataType: decimal
+		isHidden
+		formatString: $#,0.00
+		isAvailableInMdx: false
+		lineageTag: 6c6d1d32-45b5-4b44-a0c6-0d671d15509d
+		summarizeBy: none
+		sourceColumn: loan_amount
+
+	column activity
+		dataType: string
+		lineageTag: 1852c2b8-f464-4287-a941-6be588f576d3
+		summarizeBy: none
+		sourceColumn: activity
+
+	column sector
+		dataType: string
+		lineageTag: 1d4a792d-e836-4d1e-81d6-4120b857679d
+		summarizeBy: none
+		sourceColumn: sector
+
+	column use
+		dataType: string
+		lineageTag: 21ce12f4-2367-4f8f-a313-c0dcc4b8997b
+		summarizeBy: none
+		sourceColumn: use
+
+	column country_code
+		dataType: string
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 94229af7-359c-4880-a0f2-9d9169b95c99
+		summarizeBy: none
+		sourceColumn: country_code
+
+	/// Foreign key to Countries[Country]. Use Countries[Country] in visuals.
+	column country
+		dataType: string
+		isHidden
+		lineageTag: 2c979977-3b67-4341-b40f-8bd894c60ca0
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: country
+
+	column region
+		dataType: string
+		lineageTag: 1676125f-d262-4d15-a84a-411e1b85329a
+		dataCategory: Place
+		summarizeBy: none
+		sourceColumn: region
+
+	column currency
+		dataType: string
+		lineageTag: e45a8dd3-6389-422e-94ab-0dbcf49f04f3
+		summarizeBy: none
+		sourceColumn: currency
+
+	/// Foreign key to Field Partners[Partner ID]. Null for 13,507 loans.
+	column partner_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 19be0db0-a0ef-4b64-80db-0a86877452b9
+		summarizeBy: none
+		sourceColumn: partner_id
+
+	column posted_time
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-MM-dd HH:mm:ss
+		isAvailableInMdx: false
+		lineageTag: eb3f76e8-ee7e-4d76-b9c3-3575d98ee52f
+		summarizeBy: none
+		sourceColumn: posted_time
+
+	column disbursed_time
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-MM-dd HH:mm:ss
+		isAvailableInMdx: false
+		lineageTag: 6be1bc80-099c-42d9-a201-c9946c6e99c4
+		summarizeBy: none
+		sourceColumn: disbursed_time
+
+	column funded_time
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-MM-dd HH:mm:ss
+		isAvailableInMdx: false
+		lineageTag: a861b354-199d-4b46-9456-460f47651ef3
+		summarizeBy: none
+		sourceColumn: funded_time
+
+	column term_in_months
+		dataType: int64
+		isHidden
+		formatString: 0
+		isAvailableInMdx: false
+		lineageTag: 1e9533a2-80c2-422e-94d9-8b15bc44c78b
+		summarizeBy: none
+		sourceColumn: term_in_months
+
+	column lender_count
+		dataType: int64
+		isHidden
+		formatString: #,0
+		isAvailableInMdx: false
+		lineageTag: feeff5ca-a792-4c09-a62b-ac0516379e74
+		summarizeBy: none
+		sourceColumn: lender_count
+
+	column tags
+		dataType: string
+		lineageTag: c8e81d70-3c22-4eb9-8dd0-b48bc40294e9
+		summarizeBy: none
+		sourceColumn: tags
+
+	column borrower_genders
+		dataType: string
+		lineageTag: ab0d443c-101d-4abf-abc3-be05cb32ea24
+		summarizeBy: none
+		sourceColumn: borrower_genders
+
+	column repayment_interval
+		dataType: string
+		lineageTag: b39da7b6-85b2-49db-b054-6070877bffa4
+		summarizeBy: none
+		sourceColumn: repayment_interval
+
+	/// Loan posting date; foreign key to Date[Date].
+	column date
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 65622938-48a0-4d5f-986b-d54f1699d374
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Kiva loan theme identifier (from loan_theme_ids_data.csv, joined on loan id). Null for 6 loans with no theme row and ~14.8k loans whose theme row is blank.
+	column loan_theme_id
+		dataType: string
+		lineageTag: 24930a60-80a9-4095-ab8c-4f0d1e7c4781
+		summarizeBy: none
+		sourceColumn: loan_theme_id
+
+	/// Loan theme category (e.g. General, Underserved, Agriculture). Joined from loan_theme_ids_data.csv on loan id.
+	column loan_theme_type
+		dataType: string
+		lineageTag: ed2520f1-ff33-436a-a7f0-eaadb21ac054
+		summarizeBy: none
+		sourceColumn: loan_theme_type
+
+	/// Number of borrowers on the loan, counted from borrower_genders. Null when genders are missing.
+	column borrower_count
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 42b40557-5295-400d-be57-ce53526c3e53
+		summarizeBy: none
+		sourceColumn: borrower_count
+
+	/// Number of female borrowers on the loan, counted from borrower_genders.
+	column female_borrower_count
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 3b092dd7-ce07-4b57-b013-f2fbf785c13e
+		summarizeBy: none
+		sourceColumn: female_borrower_count
+
+	/// Number of male borrowers on the loan, counted from borrower_genders.
+	column male_borrower_count
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: cdb3bf94-8295-4336-94f5-01cb06c5305d
+		summarizeBy: none
+		sourceColumn: male_borrower_count
+
+	/// Borrower make-up: Individual - Female, Individual - Male, Group - All Female, Group - All Male, Group - Mixed, or Unknown (no gender data).
+	column borrower_group_type
+		dataType: string
+		lineageTag: 80a7635e-f5bb-469a-a1c6-3a6b5242584f
+		summarizeBy: none
+		sourceColumn: borrower_group_type
+
+	/// Days (fractional) between posted_time and funded_time. Blank when the loan was never fully funded. Visible so it can be binned for the Days To Fund histogram; aggregate via the Days To Fund measures.
+	column days_to_fund
+		dataType: decimal
+		formatString: #,0.00
+		lineageTag: b102c073-851e-4527-bc68-8a97e0b82113
+		summarizeBy: none
+		sourceColumn: days_to_fund
+
+	/// True when the field partner disbursed the loan before it was posted on Kiva (pre-disbursal). True for ~93% of loans - the normal Kiva model, not a data error.
+	column is_pre_disbursed
+		dataType: boolean
+		lineageTag: 89a6604d-a11a-49cb-9bd0-acf2970183dc
+		summarizeBy: none
+		sourceColumn: is_pre_disbursed
+
+	/// True when funded_amount is at least loan_amount.
+	column is_fully_funded
+		dataType: boolean
+		lineageTag: 0a926070-4797-4e10-9b4e-00fb655e5733
+		summarizeBy: none
+		sourceColumn: is_fully_funded
+
+	partition Loans = m
+		mode: import
+		source =
+				let
+				    // Raw CSV rows, everything still text (see stg_Loans_Raw)
+				    Source = stg_Loans_Raw,
+				    // Convert every column to its final type using the en-US culture, so numbers and ISO timestamps parse the same on any machine.
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        Source,
+				        {
+				            {"id", Int64.Type},
+				            {"funded_amount", Currency.Type},
+				            {"loan_amount", Currency.Type},
+				            {"activity", type text},
+				            {"sector", type text},
+				            {"use", type text},
+				            {"country_code", type text},
+				            {"country", type text},
+				            {"region", type text},
+				            {"currency", type text},
+				            {"partner_id", Int64.Type},
+				            {"posted_time", type datetimezone},
+				            {"disbursed_time", type datetimezone},
+				            {"funded_time", type datetimezone},
+				            {"term_in_months", Int64.Type},
+				            {"lender_count", Int64.Type},
+				            {"tags", type text},
+				            {"borrower_genders", type text},
+				            {"repayment_interval", type text},
+				            {"date", type date}
+				        },
+				        "en-US"
+				    ),
+				    // Strip leading and trailing whitespace from all text columns.
+				    #"Trimmed Text" = Table.TransformColumns(
+				        #"Changed Types",
+				        {
+				            {"activity", Text.Trim, type text},
+				            {"sector", Text.Trim, type text},
+				            {"use", Text.Trim, type text},
+				            {"country_code", Text.Trim, type text},
+				            {"country", Text.Trim, type text},
+				            {"region", Text.Trim, type text},
+				            {"currency", Text.Trim, type text},
+				            {"tags", Text.Trim, type text},
+				            {"borrower_genders", Text.Trim, type text},
+				            {"repayment_interval", Text.Trim, type text}
+				        }
+				    ),
+				    // Turn empty strings left after trimming into real nulls so blanks are counted consistently.
+				    #"Replaced Blank Text With Null" = Table.ReplaceValue(
+				        #"Trimmed Text",
+				        "",
+				        null,
+				        Replacer.ReplaceValue,
+				        {"activity", "sector", "use", "country_code", "country", "region", "currency", "tags", "borrower_genders", "repayment_interval"}
+				    ),
+				    // Drop rows in which every column is null or blank.
+				    #"Removed Empty Rows" = Table.SelectRows(#"Replaced Blank Text With Null", each not List.IsEmpty(List.RemoveMatchingItems(Record.FieldValues(_), {"", null}))),
+				    // The source leaves country_code blank for Namibia (8 rows), most likely because ISO 'NA' was misread as missing. Restore it.
+				    #"Restored Namibia Country Code" = Table.ReplaceValue(
+				        #"Removed Empty Rows",
+				        each [country_code],
+				        each if [country] = "Namibia" and [country_code] = null then "NA" else [country_code],
+				        Replacer.ReplaceValue,
+				        {"country_code"}
+				    ),
+				    // All timestamps carry a +00:00 offset, so drop the zone and keep plain UTC datetimes.
+				    #"Converted Timestamps To UTC Datetime" = Table.TransformColumns(
+				        #"Restored Namibia Country Code",
+				        {
+				            {"posted_time", each DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(_, 0)), type datetime},
+				            {"disbursed_time", each DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(_, 0)), type datetime},
+				            {"funded_time", each DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(_, 0)), type datetime}
+				        }
+				    ),
+				    // Loan theme per loan (loan_theme_ids_data.csv), typed and cleaned. 'id' is unique in that file, so the join below cannot duplicate loans.
+				    // The file's own Partner ID is dropped: it disagrees with Loans.partner_id on 54 loans, and Loans is the fact of record.
+				    #"Prepared Loan Themes" = Table.ReplaceValue(
+				        Table.TransformColumns(
+				            Table.TransformColumnTypes(
+				                Table.SelectColumns(stg_LoanThemes_Raw, {"id", "Loan Theme ID", "Loan Theme Type"}),
+				                {{"id", Int64.Type}, {"Loan Theme ID", type text}, {"Loan Theme Type", type text}},
+				                "en-US"
+				            ),
+				            {{"Loan Theme ID", Text.Trim, type text}, {"Loan Theme Type", Text.Trim, type text}}
+				        ),
+				        "",
+				        null,
+				        Replacer.ReplaceValue,
+				        {"Loan Theme ID", "Loan Theme Type"}
+				    ),
+				    // Rename the theme columns to match Loans' naming and give the join key a distinct name (Table.Join needs unique column names).
+				    #"Renamed Loan Theme Columns" = Table.RenameColumns(
+				        #"Prepared Loan Themes",
+				        {{"id", "theme_loan_id"}, {"Loan Theme ID", "loan_theme_id"}, {"Loan Theme Type", "loan_theme_type"}}
+				    ),
+				    // Left join keeps every loan; the 107,893 theme rows with no matching loan are dropped, and the 6 loans with no theme get nulls.
+				    #"Merged Loan Themes" = Table.Join(
+				        #"Converted Timestamps To UTC Datetime", {"id"},
+				        #"Renamed Loan Theme Columns", {"theme_loan_id"},
+				        JoinKind.LeftOuter
+				    ),
+				    #"Removed Theme Join Key" = Table.RemoveColumns(#"Merged Loan Themes", {"theme_loan_id"}),
+				    // borrower_genders lists one gender per borrower, comma-separated (e.g. "female, female, male"). Count each.
+				    #"Added Borrower Counts" = Table.AddColumn(
+				        #"Removed Theme Join Key",
+				        "_genders",
+				        each if [borrower_genders] = null then null else List.Transform(Text.Split([borrower_genders], ","), Text.Trim)
+				    ),
+				    #"Added Borrower Count" = Table.AddColumn(#"Added Borrower Counts", "borrower_count", each if [_genders] = null then null else List.Count([_genders]), Int64.Type),
+				    #"Added Female Borrower Count" = Table.AddColumn(#"Added Borrower Count", "female_borrower_count", each if [_genders] = null then null else List.Count(List.Select([_genders], each _ = "female")), Int64.Type),
+				    #"Added Male Borrower Count" = Table.AddColumn(#"Added Female Borrower Count", "male_borrower_count", each if [_genders] = null then null else List.Count(List.Select([_genders], each _ = "male")), Int64.Type),
+				    // Classify each loan by borrower make-up for the Borrowers & Gender page.
+				    #"Added Borrower Group Type" = Table.AddColumn(
+				        #"Added Male Borrower Count",
+				        "borrower_group_type",
+				        each
+				            if [borrower_count] = null then "Unknown"
+				            else if [borrower_count] = 1 then (if [female_borrower_count] = 1 then "Individual - Female" else "Individual - Male")
+				            else if [male_borrower_count] = 0 then "Group - All Female"
+				            else if [female_borrower_count] = 0 then "Group - All Male"
+				            else "Group - Mixed",
+				        type text
+				    ),
+				    #"Removed Gender List Helper" = Table.RemoveColumns(#"Added Borrower Group Type", {"_genders"}),
+				    // Days from posting on Kiva to being fully funded (fractional days). Null when the loan was never fully funded.
+				    #"Added Days To Fund" = Table.AddColumn(
+				        #"Removed Gender List Helper",
+				        "days_to_fund",
+				        each if [funded_time] = null or [posted_time] = null then null else Number.Round(Duration.TotalDays([funded_time] - [posted_time]), 2),
+				        type number
+				    ),
+				    // Pre-disbursal: the field partner paid the borrower before the loan was posted on Kiva (true for ~93% of loans - this is normal, not an error).
+				    #"Added Is Pre-Disbursed" = Table.AddColumn(
+				        #"Added Days To Fund",
+				        "is_pre_disbursed",
+				        each if [disbursed_time] = null or [posted_time] = null then null else [disbursed_time] < [posted_time],
+				        type logical
+				    ),
+				    // Fully funded: lenders covered the whole requested amount.
+				    #"Added Is Fully Funded" = Table.AddColumn(
+				        #"Added Is Pre-Disbursed",
+				        "is_fully_funded",
+				        each [funded_amount] >= [loan_amount],
+				        type logical
+				    )
+				in
+				    #"Added Is Fully Funded"
+

@@ -1,0 +1,24 @@
+relationship Loans_country_Countries_Country
+	fromColumn: Loans.country
+	toColumn: Countries.Country
+
+relationship 'MPI Regions_country_kiva_Countries_Country'
+	fromColumn: 'MPI Regions'.country_kiva
+	toColumn: Countries.Country
+
+relationship 'Themes By Region_country_Countries_Country'
+	fromColumn: 'Themes By Region'.country
+	toColumn: Countries.Country
+
+relationship 'Loans_partner_id_Field Partners_Partner ID'
+	fromColumn: Loans.partner_id
+	toColumn: 'Field Partners'.'Partner ID'
+
+relationship 'Themes By Region_Partner ID_Field Partners_Partner ID'
+	fromColumn: 'Themes By Region'.'Partner ID'
+	toColumn: 'Field Partners'.'Partner ID'
+
+relationship Loans_date_Date_Date
+	fromColumn: Loans.date
+	toColumn: Date.Date
+

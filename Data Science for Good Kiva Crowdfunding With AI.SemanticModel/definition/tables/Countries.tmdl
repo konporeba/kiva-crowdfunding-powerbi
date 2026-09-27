@@ -1,0 +1,135 @@
+/// One row per country appearing in Loans, MPI Regions or Themes By Region (conformed country dimension). Country MPI is the unweighted average of that country's regional MPI scores - the source has no population weights. Countries without MPI data are kept and flagged, not dropped.
+table Countries
+	lineageTag: 5afe18c9-25af-4d6e-a489-364d369137ae
+
+	/// Country name (Loans spelling). Key for relationships from Loans, MPI Regions and Themes By Region.
+	column Country
+		isKey
+		lineageTag: 89887ed5-4b36-4b6b-b740-87b88d450d51
+		dataCategory: Country
+		isNameInferred
+		sourceColumn: [Country]
+
+	/// ISO 3166 alpha-2 code from Loans. Blank for countries with no loans.
+	column 'Country Code'
+		lineageTag: 9222f55f-7fd4-4103-9b81-354ba5406143
+		isNameInferred
+		sourceColumn: [Country Code]
+
+	/// ISO 3166 alpha-3 code from the MPI or Themes By Region file.
+	column 'ISO3 Code'
+		lineageTag: 4c3341e4-01f4-4883-9b70-3a03fb61eb11
+		isNameInferred
+		sourceColumn: [ISO3 Code]
+
+	/// World region from the MPI file; 'Not classified' when the country is not in the MPI file.
+	column 'World Region'
+		lineageTag: 21e9e5b2-cb44-4008-88ed-a98f266c0dcc
+		isNameInferred
+		sourceColumn: [World Region]
+
+	/// Unweighted average of the country's regional MPI (Multidimensional Poverty Index, 0-1, higher = poorer) scores. No population weights exist in the source. Blank when the country has no MPI score.
+	column 'Country MPI'
+		formatString: 0.000
+		lineageTag: a15addf1-7d16-4e19-8239-7a5fa798f5c7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Country MPI]
+
+	/// Yes when the country has at least one MPI score. 58 of 87 loan countries do.
+	column 'Has MPI Data'
+		lineageTag: 7fd2aa53-ffb7-4f30-aba2-cb8968894c34
+		isNameInferred
+		sourceColumn: [Has MPI Data]
+
+	/// Country MPI band: Very high (0.40+), High (0.25-0.40), Moderate (0.10-0.25), Low (under 0.10), No MPI data. 'High poverty' in measures = Very high + High (MPI >= 0.25).
+	column 'MPI Band'
+		lineageTag: cdd34658-d2a4-4e10-a549-c4db243cd6b2
+		isNameInferred
+		sourceColumn: [MPI Band]
+		sortByColumn: 'MPI Band Order'
+
+	/// Sort key for MPI Band (1 = poorest).
+	column 'MPI Band Order'
+		isHidden
+		lineageTag: d25639f0-63a8-40a2-820f-d99faced33b4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MPI Band Order]
+
+	/// Yes when the country has at least one Kiva loan (87 of 119 countries).
+	column 'Has Loans'
+		lineageTag: c2c2df01-7dfb-46c1-94bd-e988436f43d3
+		isNameInferred
+		sourceColumn: [Has Loans]
+
+	partition Countries = calculated
+		mode: import
+		source =
+				-- Conformed country dimension shared by Loans, MPI Regions and Themes By Region.
+				-- Built as a calculated table so the 187 MB loans CSV is not re-read on refresh.
+				-- Lookups use FILTER over the source tables (no context transition), so no
+				-- circular dependency with the relationships that point at this table.
+				VAR _loanCountryCodes =
+				    SELECTCOLUMNS(
+				        SUMMARIZE('Loans', 'Loans'[country], 'Loans'[country_code]),
+				        "@Country", 'Loans'[country],
+				        "@Code", 'Loans'[country_code]
+				    )
+				VAR _allCountries =
+				    FILTER(
+				        DISTINCT(
+				            UNION(
+				                DISTINCT('Loans'[country]),
+				                DISTINCT('MPI Regions'[country_kiva]),
+				                DISTINCT('Themes By Region'[country])
+				            )
+				        ),
+				        NOT ISBLANK([country])
+				    )
+				VAR _withAttributes =
+				    ADDCOLUMNS(
+				        _allCountries,
+				        "Country Code", MAXX(FILTER(_loanCountryCodes, [@Country] = EARLIER([country])), [@Code]),
+				        "ISO3 Code", COALESCE(
+				            MAXX(FILTER('MPI Regions', 'MPI Regions'[country_kiva] = EARLIER([country])), 'MPI Regions'[ISO]),
+				            MAXX(FILTER('Themes By Region', 'Themes By Region'[country] = EARLIER([country])), 'Themes By Region'[ISO])
+				        ),
+				        "World Region", COALESCE(
+				            MAXX(FILTER('MPI Regions', 'MPI Regions'[country_kiva] = EARLIER([country])), 'MPI Regions'[world_region]),
+				            "Not classified"
+				        ),
+				        "Country MPI", AVERAGEX(
+				            FILTER('MPI Regions', 'MPI Regions'[country_kiva] = EARLIER([country]) && NOT ISBLANK('MPI Regions'[MPI])),
+				            'MPI Regions'[MPI]
+				        ),
+				        "Has Loans", IF(CONTAINS(_loanCountryCodes, [@Country], [country]), "Yes", "No")
+				    )
+				RETURN
+				    SELECTCOLUMNS(
+				        _withAttributes,
+				        "Country", [country],
+				        "Country Code", [Country Code],
+				        "ISO3 Code", [ISO3 Code],
+				        "World Region", [World Region],
+				        "Country MPI", [Country MPI],
+				        "Has MPI Data", IF(ISBLANK([Country MPI]), "No", "Yes"),
+				        "MPI Band", SWITCH(
+				            TRUE(),
+				            ISBLANK([Country MPI]), "No MPI data",
+				            [Country MPI] >= 0.4, "Very high (0.40+)",
+				            [Country MPI] >= 0.25, "High (0.25-0.40)",
+				            [Country MPI] >= 0.1, "Moderate (0.10-0.25)",
+				            "Low (under 0.10)"
+				        ),
+				        "MPI Band Order", SWITCH(
+				            TRUE(),
+				            ISBLANK([Country MPI]), 5,
+				            [Country MPI] >= 0.4, 1,
+				            [Country MPI] >= 0.25, 2,
+				            [Country MPI] >= 0.1, 3,
+				            4
+				        ),
+				        "Has Loans", [Has Loans]
+				    )
+

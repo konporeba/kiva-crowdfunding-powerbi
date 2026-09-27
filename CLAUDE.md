@@ -1,0 +1,368 @@
+﻿# Data Science for Good: Kiva Crowdfunding — Power BI Report
+
+Building a production-quality, visually distinctive Power BI report on the Kiva
+Crowdfunding dataset, combining native visuals with the HTML Content custom
+visual. This file is the single source of truth for progress and plan — read
+it fully before doing anything else in this project, and keep it updated after
+every phase (don't wait to be asked).
+
+## Project location & format
+
+- Root: `X:\Data Science for Good Kiva Crowdfunding\` (no git repo)
+- Report: `Data Science for Good Kiva Crowdfunding With AI.pbip` — **PBIP** project
+  (not .pbix), so model = TMDL files, report layout = PBIR JSON files.
+- `...With AI.SemanticModel/` — semantic model (TMDL, compat level 1606)
+- `...With AI.Report/` — report (PBIR v2.0, one blank page so far, base theme
+  `Fluent2-CY26SU08`, no custom theme yet)
+- Backups: `_backup\<timestamp>\` — full pre-edit copy exists at
+  `_backup\20260926-215830\`. Make a fresh timestamped backup before any phase
+  that does destructive/large edits, per the user's original instruction.
+
+## Environment quirks (read before debugging — don't re-diagnose these)
+
+- **Two Power BI Desktop installs exist.** Always use the **newest** one.
+  Confirmed running version: `Microsoft.MicrosoftPowerBIDesktop_2.157.1354.0`
+  under `C:\Program Files\WindowsApps\...`. Ask the user to open Desktop
+  themselves rather than launching it via CLI if there's any ambiguity.
+- **Close Desktop before editing TMDL/PBIR files directly** — Desktop holds
+  the project in memory and will overwrite file edits on its next save/reload.
+  Confirm `PBIDesktop.exe` is not running (`tasklist`) before writing files;
+  ask user to reopen it afterward for refresh/validation.
+- **`powerbi-modeling-mcp` MCP server cold-start timeout.** It launches via
+  `npx -y @microsoft/powerbi-modeling-mcp@latest --start`. The **first**
+  connection attempt in an environment often exceeds Claude Code's 30s connect
+  budget because npx has to download the ~40MB package — this shows up as
+  `CONNECT_TIMEOUT`. It is not a config problem. Once the npx cache is warm
+  (`%LOCALAPPDATA%\npm-cache\_npx\deea81b821a9ed55`), standalone handshake
+  takes ~2.5–4.5s. **The fix is a full restart of the Claude Code process**
+  (not just `/mcp` or a mid-conversation retry) so a new connection attempt is
+  made from a clean state — a session that already recorded `CONNECT_TIMEOUT`
+  will not retry mid-conversation. Native-exe fallback also exists at
+  `%USERPROFILE%\.vscode\extensions\analysis-services.powerbi-modeling-mcp-1.0.0-win32-x64\server\powerbi-modeling-mcp.exe`
+  (ReadWrite mode, all tools) if npx ever becomes unavailable.
+- **MCP connected successfully 2026-09-27** (plugin `powerbi-authoring`,
+  server `powerbi-modeling-mcp`). The EULA was accepted by the user on that
+  date via `accept_eula`. To connect: `connection_operations` →
+  `ListLocalInstances` → `Connect` with the listed connection string. The
+  Desktop port changes on every launch, so always re-list first.
+- **Tool-selection rule (from the `semantic-model-authoring` skill):** if
+  `powerbi-modeling-mcp` MCP tools are connected, **prefer them over hand-
+  editing TMDL** for all model reads/writes — MCP is source of truth for a
+  live model and avoids desync. Only fall back to direct TMDL edits when MCP
+  is unavailable (as in Phase 1, done via fallback). Re-check MCP availability
+  at the start of every new session before deciding which path to use.
+- HTML Content custom visual **is registered** as of the user's manual import:
+  `report.json` → `publicCustomVisuals: ["htmlContent443BE3AD55E043BF878BED274D3A6855"]`.
+  Confirmed present — don't re-check unless something seems off.
+
+## Design system (exact hexes — do not alter)
+
+| Token | Hex | Primary use |
+|---|---|---|
+| `--punch-red` | `#E63946` | Negative/alert signals, funding gap **only** (see decision below) |
+| `--honeydew` | `#F1FAEE` | Page background, light text on dark cards |
+| `--frosted-blue` | `#A8DADC` | Secondary series, soft fills, borders, hover states |
+| `--cerulean` | `#457B9D` | Primary data series, icons, secondary headings, **call-to-action / interactive affordances** |
+| `--oxford-navy` | `#1D3557` | Header bars, navigation, titles, dark cards, primary text |
+
+**Decision made (flagged to user, not contradicted):** the brief assigns
+`#E63946` to both "alerts/funding gap" and "call-to-action," which would make
+negative-signal red indistinguishable from clickable red. Resolved by
+reserving `#E63946` for negative/gap signals only, and using `#457B9D` for
+interactive affordances/CTAs. All five hexes are still used exactly as given
+— only the semantic assignment of the two overlapping uses was split. Revisit
+only if the user objects.
+
+Use 6-digit hex everywhere (theme JSON and HTML) — the brief's `ff` alpha
+suffix is dropped.
+
+## Report requirements (user's answers in place of missing brief sections 4–5, 2026-09-27)
+
+The brief had no sections 4–5; the user answered these questions instead:
+- **Navigation:** left-side nav rail, **collapsible**.
+- **Filtering:** slicers **apply across pages** (sync slicers).
+- **Canvas:** standard **1280×720**.
+- **HTML visuals:** animations allowed; the report should look
+  **outstanding**, leaning on the HTML Content visual.
+- **Audience/tone:** **portfolio showcase**.
+- **Accessibility:** no special requirements.
+- **Measures:** nothing specific beyond what exists.
+- **Theme:** **light tone by default, with a light/dark mode toggle**, using
+  the five Design System colours below.
+
+## Report pages (from user's brief, section 6)
+1. **Home** — HTML landing/intro page
+2. **Overview** — hero KPI strip (HTML), funding progress rings (HTML),
+   monthly lending trend (native line/area), world map, top sectors
+   leaderboard (HTML), insight callout
+3. **Geography & Poverty** — map by region with MPI, country ranking matrix
+   w/ conditional formatting, scatter (Avg MPI vs Loan Amount per country),
+   high-poverty share KPI
+4. **Sectors & Activities** — field-parameter driven bar chart, sector→activity
+   treemap/decomposition, sector leaderboard (HTML), avg loan by sector
+5. **Borrowers & Gender** — gender impact panel (HTML), borrower group type
+   breakdown, female share by sector/region, repayment interval split
+6. **Funding Dynamics** — Days To Fund histogram (binned column), funding
+   speed by sector/country, pre-disbursal %, lender count vs loan amount
+7. **Partners & Themes** — field partners ranked, loan theme types, rural_pct
+   analysis
+8. **Explore** — decomposition tree / key influencers
+9. **Country Profile** (drill-through, hidden from nav) — HTML profile card +
+   supporting visuals
+10. **Tooltip pages** (hidden)
+11. **About** — dataset description, metric definitions, data source, last
+    refresh
+
+## Progress log
+
+### Phase 0 — Discovery ✅ DONE
+- Confirmed `.pbip` format, mapped folder structure (see above).
+- Verified all 4 CSVs present; note the **actual filenames have a `_data`
+  suffix** vs. the brief's names: `kiva_loans_data.csv`,
+  `loan_theme_ids_data.csv`, `loan_themes_by_region_data.csv` (MPI file name
+  matches: `kiva_mpi_region_locations.csv`). All expected columns present.
+- Created timestamped backup (`_backup\20260926-215830\`).
+- Confirmed HTML Content visual missing → user imported it manually → verified
+  registered in `report.json`.
+- Diagnosed MCP `CONNECT_TIMEOUT` as npx cold-start, not misconfiguration.
+
+### Phase 1 — Power Query data load ✅ DONE, refreshed & confirmed working by user
+Authored via direct TMDL edits (MCP unavailable this session). Files:
+`definition/expressions.tmdl` (parameter + staging queries), `definition/tables/*.tmdl`.
+
+- **`pDataFolder`** parameter = `X:\Data Science for Good Kiva Crowdfunding\`,
+  referenced by every source step — no hard-coded paths anywhere else.
+- **Staging queries (Not Loaded):** `stg_Loans_Raw`, `stg_MPI_Raw`,
+  `stg_LoanThemes_Raw`, `stg_ThemesByRegion_Raw` (raw CSV → promoted headers,
+  `QuoteStyle.Csv` to survive embedded line breaks in `use`), plus
+  `stg_KivaCountryMap` (a record used as a lookup, see below).
+- **Loaded tables**, all with descriptively-named/commented M steps
+  (`Changed Types` [en-US culture], `Trimmed Text`, `Replaced Blank Text With
+  Null`, `Removed Empty Rows`, plus table-specific fix-up steps):
+  - **`Loans`** (20 cols, ~671,205 rows) ← `kiva_loans_data.csv`
+  - **`MPI Regions`** (10 cols incl. added `country_kiva`, ~1,008 real rows
+    after filtering) ← `kiva_mpi_region_locations.csv`
+  - **`Loan Themes`** (4 cols, ~779,092 rows) ← `loan_theme_ids_data.csv`
+  - **`Themes By Region`** (21 cols, ~15,736 rows) ← `loan_themes_by_region_data.csv`
+- Explicit `dataType` + `formatString` set per column; whole-number columns
+  (`id`, `partner_id`, `term_in_months`, `lender_count`, theme `Partner ID`,
+  `number`) verified to hold no fractional values before typing as Int64;
+  money columns as `Currency.Type`.
+- Data-quality fixes applied in M (all verified against the raw files, see
+  next section for the underlying facts):
+  - MPI: dropped 1,764 placeholder rows (`geo = (1000.0, 1000.0)` sentinel,
+    no location/country), nulled the placeholder `geo` value on the rest.
+  - MPI: added `country_kiva` column mapping 9 MPI country spellings to the
+    Loans spelling (via `stg_KivaCountryMap`), so a country-level relationship
+    is possible without editing the source data.
+  - Loans: restored `country_code = "NA"` for Namibia's 8 blank rows.
+  - Loans: converted the three `+00:00`-suffixed timestamp columns to plain
+    UTC datetime (dropped the redundant zone).
+- (Relationships, `_Measures` and the Loan Themes merge were done in Phase 2.)
+- **User confirmed:** refreshed successfully in Desktop, no errors reported.
+
+### Phase 2 — Model: merge, dimensions, relationships, `_Measures` ✅ DONE (via MCP)
+Done live in Desktop via `powerbi-modeling-mcp`. Backup: `_backup\<2026-09-27 ts>\`.
+**Persisted to PBIP only when the user saves in Desktop (Ctrl+S)** — confirm
+the save happened before any TMDL-level work.
+
+**Loans (merge — user decision):** `Loan Themes` merged into `Loans` (left
+`Table.Join` on `id`); table deleted, `stg_LoanThemes_Raw` kept as source.
+671,205 rows / 671,205 distinct ids; 657,692 have a theme type. Themes'
+Partner ID dropped (disagrees with Loans on 54 loans). New M columns:
+`loan_theme_id`, `loan_theme_type`, `borrower_count` / `female_borrower_count`
+/ `male_borrower_count` (1,346,212 = 1,071,308 F + 274,904 M),
+`borrower_group_type` (Individual - Female/Male, Group - All Female/All
+Male/Mixed, Unknown = 4,221), `days_to_fund` (median 9.59, max 420.6; **one
+loan = -17.5, measures filter `>= 0`**), `is_pre_disbursed`, `is_fully_funded`.
+
+**Dimensions (star schema, all 1:many, single direction):**
+- `Countries` — DAX calc table (avoids re-reading the 187 MB CSV). 119 rows
+  (87 with loans, 58 of those with MPI). Cols: Country (key, dataCategory
+  Country), Country Code (ISO2), ISO3 Code, World Region, Country MPI
+  (unweighted mean of regional MPI), Has MPI Data, MPI Band (sorted by hidden
+  MPI Band Order; Very high ≥0.40 / High ≥0.25 / Moderate ≥0.10 / Low / No MPI
+  data), Has Loans. ← Loans[country], MPI Regions[country_kiva],
+  Themes By Region[country].
+- `Field Partners` — DAX calc table, 372 rows; 70 unnamed ("Partner <id>
+  (name not in source)"). ← Loans[partner_id] (13,507 loans null = only
+  unmatched rows), Themes By Region[Partner ID].
+- `Date` — M-generated 2014-01-01..2017-12-31, marked as date table; Year,
+  Quarter, Year Quarter, Month Name, Year Month (all sorted), Month Start,
+  Day Name. ← Loans[date] (posting date).
+- Referential integrity verified: no orphan rows except the null-partner loans.
+- FK / aggregated base columns hidden (Loans id, country, country_code,
+  partner_id, date, amounts, lender_count, term, timestamps, borrower counts;
+  MPI country/country_kiva/MPI; TBR Partner ID, name, country, amount, number,
+  rural_pct). lat/lon dataCategory set.
+
+**`_Measures` (M empty table, hidden `Placeholder` col) — 32 measures, all
+tested, zero errors (`INFO.MEASURES()`).** Each has `// Purpose / Logic /
+Used in` header, description, formatString, displayFolder:
+- Lending Volume: Total Loans (671,205), Total Loan Amount ($565.4M), Total
+  Funded Amount ($527.6M), Funding Gap ($37.9M, per-loan floored at 0),
+  Funded % (93.3%), Fully Funded Loan % (92.8%), Average/Median Loan Amount
+  ($842 / $500), Average Term (Months), Loan Amount YoY % (2017 = -45% at year
+  level because data ends Jul 2017 — use month/quarter).
+- Lenders: Total Lender Commitments (participations, NOT unique lenders),
+  Average Lenders per Loan (20.6), Average Amount per Lender ($38.17).
+- Borrowers & Gender: Total/Female/Male Borrowers, Female Borrower % (79.6%,
+  person-level), Loans With Female Borrower % (79.2%, loan-level), Average
+  Borrowers per Loan (2.02).
+- Funding Speed: Average/Median Days To Fund (14.6 / 9.6), Funded Within 7
+  Days % (42.2%), Pre-Disbursed Loan % (93.4%).
+- Geography & Poverty: Countries With Loans (87), Average Regional MPI,
+  Loan-Weighted MPI (0.150), MPI Coverage % (73.7% of amount),
+  High-Poverty Loan Amount % (18.1%; MPI ≥ 0.25, denominator = MPI-covered
+  countries only — **threshold is my assumption, flagged to user**).
+- Partners & Themes: Active Field Partners (366), Loan Theme Types (197),
+  Theme Region Amount (separate TBR grain — never compare with Loans totals),
+  Rural Borrower % (67.4%, amount-weighted, rural_pct/100).
+
+**Not done / suggested:** `discourageImplicitMeasures` not yet enabled
+(suggested to user). Loans column names still snake_case from source — a
+rename to business-friendly names was suggested, not done.
+
+### Phase 3 — Report: theme, nav, light/dark, pages — IN PROGRESS
+User confirmed (2026-09-27): MPI ≥ 0.25 threshold OK; white + derived
+tints/shades of the 5 hexes may be used for surfaces and dark mode.
+Backup: `_backup\20260927-080801-pre-phase3\`.
+
+**Save-sync incident (don't repeat):** tables created via MCP with an **M
+partition** (`Date`, `_Measures`) were NOT registered in Desktop's own
+model copy, so Ctrl+S never wrote them (DAX calc tables, relationships,
+measures on existing tables DID save). Fixed by MCP `database_operations
+ExportToTmdlFolder` → scratch → merged (kept disk `database.tmdl`, removed stale
+"Loan Themes" from `PBI_QueryOrder`) → copied into `definition/` with Desktop
+CLOSED (user closed without saving). **Rule: create new M-partition tables by
+editing TMDL with Desktop closed, not via MCP. Use MCP for measures, calc
+tables, relationships and column properties.** After any MCP session, diff an
+MCP export against disk before trusting a Desktop save.
+
+**Done:**
+- Theme `StaticResources/RegisteredResources/KivaImpact-<hex>.json`
+  (generated by `scratchpad/build/write-theme.js` — rotates the suffix on every
+  write and re-registers it in report.json). Light tokens: page #F1FAEE, card
+  #FFFFFF, border #A8DADC r=12, text #1D3557, muted #457B9D, series
+  [#457B9D, #A8DADC, #1D3557, #86A9BF, #30566E, #6D8E8F, #8E9AAB, #D4EDEE],
+  bad=#E63946, Segoe UI / Segoe UI Semibold. Filter-pane styles
+  (`outspacePane`/`filterCard`) must go under `visualStyles.page["*"]` —
+  the validator rejects them under `"*"`.
+- Dark tokens (for colour measures): page #101D30 (navy −45%), card #1D3557,
+  border #3F5370 (navy +15%), text #F1FAEE, muted #A8DADC, primary series
+  #A8DADC, secondary #457B9D, alert #E63946, nav #14253D (light nav #1D3557).
+- Page 1 renamed "Home", resized to 1280×720. Validator: 0 errors.
+- CLIs: powerbi-report-author 0.4.0, powerbi-desktop 1.0.0 (global npm).
+
+**HTML Content visual facts** (from github dm-p/powerbi-visuals-html-content
+capabilities.json; the installed AppSource build may be older): roles `content`
+(Values, max 1), `sampling` (Granularity), `tooltips`. Objects:
+`contentFormatting` (showRawHtml, format html|markdown, renderMode
+rebuild|reconcile, fontFamily, fontSize, fontColour, align,
+overrideInlineStyling, hyperlinks, userSelect, noDataMessage), `stylesheet`
+(stylesheet text), `crossFilter`. The sanitizer ALLOWS `<style>` blocks,
+`@keyframes`, `@media`, inline SVG and data-URI images; it STRIPS scripts,
+`@import` and `@font-face` → system fonts only, no JS. The HTML visual cannot
+navigate pages → the nav rail uses native buttons.
+
+**Report generator (source of truth for all pages):**
+`_build/gen.js` (+ `lib.js`, `icons.js`, `pages/<key>.js`, `write-theme.js`) in the project root, mirrored from scratchpad/build.
+`node gen.js` wipes and rewrites every page, the nav bookmarks and the icon
+resources. IDs are deterministic (sha1 of the key), so re-runs are idempotent.
+Page IDs: Home=7a60e10f702b7c1a7f4b, Overview=2917796e9b845f2b826b,
+Geography=93fef5260e7b9413a4f4, Sectors=1c531d8653ea2cf54979,
+Borrowers=c598cfc5b25974831cae, Funding=299b716bc6ffe238f627,
+Partners=765aff8d7c4207a64a55, Explore=d8a08f3baef264eb2e6d,
+About=cd89af5befbffa736945. **The scratchpad is session-scoped. Copy
+`build/` into the project (e.g. `_build/`) before the session ends.**
+
+**Desktop / save workflow lessons (2026-09-27):**
+- MCP model changes set `hasUnsavedChanges`. The Desktop CLI cannot save, and a
+  Desktop save also rewrites the PBIR files from its in-memory report. Reliable
+  loop: MCP change → `database_operations ExportToTmdlFolder` → diff → copy
+  the changed TMDL files to disk → `powerbi-desktop reload`. `reload` reloads
+  the REPORT only, not the model: if the engine was started before the TMDL
+  copy, the user must close Desktop without saving and reopen it.
+- `powerbi-desktop` PID ≠ engine PID; re-run `status` and `ListLocalInstances`
+  after any restart.
+- actionButton `fill.show=false` is ignored (a default blue shows). Use
+  `show:true` with `transparency:100` for "no fill".
+
+**Status 2026-09-27 ~09:00 — Home ✅, Overview ✅ (map blank), chrome ✅ on all 9 pages.**
+- Chrome built and verified in light and dark mode: full-page bg shape (fx `Color Page`),
+  64px rail (logo, menu, 9 page icons with the current page highlighted, sun/moon toggle),
+  208px drawer group (hidden by default; Open/Close bookmark pair per page — the
+  drawer was verified visually by rendering it open with `KIVA_DRAWER_OPEN=1 node gen.js`),
+  header title/subtitle (action-less buttons), 4 synced dropdown slicers.
+- Test switches: `KIVA_MODE=Dark node gen.js` pre-selects Dark for screenshots;
+  always re-run plain `node gen.js` afterwards (Light default).
+- HTML measures (all in `_Measures`, folder HTML): HTML Theme CSS (shared tokens
+  + keyframes), HTML Home, HTML Overview KPIs (sparklines), HTML Funding Rings,
+  HTML Top Sectors (top 5), HTML Overview Insight. Keep every HTML root ≥4px
+  shorter than its visual, or the HTML visual shows a scrollbar.
+- **PBIR gotchas confirmed:** actionButton needs the dual-entry pattern (a static
+  entry + an `id:'default'` entry) or its fill/text are ignored; shape text doesn't
+  render (use action-less buttons for labels); advancedSlicerVisual tile colour
+  comes from `fillCustom` (set show:false), and state selectors on background
+  appear ineffective; projection `displayName` renames legend entries.
+- **Open:** the Azure Map renders blank (likely Azure Maps disabled in Desktop
+  Options → Security, or by tenant) — asked the user.
+- Next pages: Geography & Poverty, Sectors & Activities, Borrowers & Gender,
+  Funding Dynamics, Partners & Themes, Explore, About, Country Profile
+  (drillthrough), tooltip pages.
+- Every model change: MCP → ExportToTmdlFolder → `bash _build/sync-model.sh <dir>`.
+
+**Planned mechanics:**
+- Light/dark: `Theme Mode` calc table (Light/Dark) + single-select button
+  slicer in nav rail, synced on all pages, Light default; colour measures
+  (`SELECTEDVALUE(..., "Light")`) bound via fx to backgrounds, titles and data
+  colours; full-page background shape with fx fill; HTML measures read the mode.
+- Collapsible nav: native buttons + per-page Expanded/Collapsed bookmark pair.
+- Global slicers synced across pages (year, world region, country, sector).
+
+## Verified data-quality facts (profiled with pandas, 2026-09-26)
+
+Keep these in mind for every later measure/visual — don't re-derive them:
+
+- **MPI file**: 2,772 total rows, only 1,008 are "real" (984 with an MPI
+  score + 24 country-only rows with no MPI). The rest are placeholder rows.
+- **25 of 87 loan countries have no MPI match at all** even after the spelling
+  fix — e.g. Chile, Costa Rica, Panama, United States, Turkey, Lebanon,
+  Israel, Puerto Rico, Georgia, Kosovo. Any MPI-based measure/visual should
+  either filter these out explicitly or make the exclusion visible (e.g. a
+  footnote / an "MPI coverage %" KPI) rather than silently showing blanks.
+- **Region-level join between Loans and MPI is not viable** — Loans' `region`
+  is free-text city/area names; only ~7.6% match MPI's `LocationName`
+  string exactly. Any geography relationship must be at **country** grain.
+- **`loan_theme_ids`**: `id` is unique (safe 1:1 key to `Loans.id`), but the
+  file has more rows (779,092) than `Loans` (671,205) — 107,893 ids aren't in
+  `Loans`, and 6 loans have no theme row at all. 14,813 rows have a null
+  theme type/id/partner.
+- **93% of loans have `disbursed_time` earlier than `posted_time`** — i.e.
+  pre-disbursal is the norm, not the exception. This is a legitimate metric
+  ("pre-disbursal %") for the Funding Dynamics page, not a data error.
+- 2 loans have `funded_amount > loan_amount` — left as-is (immaterial, not a
+  parsing artifact — both values parsed fine as currency).
+- All three loan timestamp columns are uniformly `+00:00` — safe to drop the
+  zone marker after parsing (done in Phase 1).
+
+## Assumptions carried forward (flag if wrong, don't re-litigate silently)
+
+- Using actual on-disk filenames (`*_data.csv`) rather than the brief's names.
+- `Loans` remains the single grain-671k fact table; `Loan Themes` figures as a
+  bridge/lookup, not a second fact, despite its higher row count.
+- Palette semantic split for `#E63946` (see Design system section above).
+
+## How to resume after a session restart
+
+1. Re-read this file in full.
+2. Check whether `powerbi-modeling-mcp` MCP tools are connected this session
+   (`ToolSearch` or just try a call). If connected, **switch to MCP** for all
+   further model work per the tool-selection rule above, even though Phase 1
+   used the TMDL fallback.
+3. Confirm Desktop is closed before any direct file edit; confirm it's the
+   newer version before asking the user to open/refresh.
+4. Pick up at Phase 3 (theme, pages, HTML visuals) unless the user says
+   otherwise.
+5. Update this file's Progress log at the end of every phase — don't wait to
+   be asked.

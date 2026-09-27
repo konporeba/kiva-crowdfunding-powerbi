@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Data Science for Good Kiva Crowdfunding With AI"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "212f361b-d0cd-43a1-b04c-c9df94c087b2"
+  }
+}

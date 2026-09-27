@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Nav Close - Borrowers & Gender",
+  "name": "Bookmark280a49fab91a92e4ebf5",
+  "options": {
+    "targetVisualNames": [
+      "e4421f487f1d082425d2"
+    ],
+    "applyOnlyToTargetVisuals": true,
+    "suppressData": true,
+    "suppressActiveSection": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "c598cfc5b25974831cae",
+    "sections": {
+      "c598cfc5b25974831cae": {
+        "visualContainers": {},
+        "visualContainerGroups": {
+          "e4421f487f1d082425d2": {
+            "isHidden": true
+          }
+        }
+      }
+    }
+  }
+}

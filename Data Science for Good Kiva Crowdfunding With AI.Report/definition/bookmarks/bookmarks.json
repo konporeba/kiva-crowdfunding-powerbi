@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmarksMetadata/1.0.0/schema.json",
+  "items": [
+    {
+      "name": "Bookmark1c177de270f594d45525",
+      "displayName": "Navigation (drawer)",
+      "children": [
+        "Bookmark6feebf1eeab3bd4c9086",
+        "Bookmarkd957a9556dcb6ca112a6",
+        "Bookmarkc6218252a1fb48256668",
+        "Bookmark4439443c134850e72e73",
+        "Bookmarkfe476f3d62eabcd53f0a",
+        "Bookmarka0dd2abc1178f7bcad7e",
+        "Bookmarkf36ae3c41bf9673ec7ea",
+        "Bookmark197e7faf9d0522543f7f",
+        "Bookmarkb290bf8556e489514132",
+        "Bookmark280a49fab91a92e4ebf5",
+        "Bookmark66aa1d09ec20ae6a43d9",
+        "Bookmark952acfd853a8407c6079",
+        "Bookmark83ae3505116ea1da158f",
+        "Bookmark1c684dffc18f0edff5cb",
+        "Bookmark9988a1e74422b41c08b8",
+        "Bookmarkfa2e1fd8ce299017d869",
+        "Bookmarkab6d4552ccbd10d3d18d",
+        "Bookmark7c09db6af388e80b95a1"
+      ]
+    }
+  ]
+}

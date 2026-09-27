@@ -1,0 +1,154 @@
+/// Calendar table, one row per day from 2014-01-01 to 2017-12-31 (loans span 2014-01-01 to 2017-07-26). Related to Loans[date], the loan posting date. Generated in Power Query without reading any file.
+table Date
+	lineageTag: 56a149d6-a1f6-4427-a3c9-0f8251402c35
+	dataCategory: Time
+
+	/// Calendar day. Key for the relationship from Loans[date].
+	column Date
+		dataType: dateTime
+		isUnique
+		isKey
+		formatString: yyyy-MM-dd
+		lineageTag: e659d075-78d6-4ec5-a57c-546c08d80830
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Calendar year.
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: ec904729-93d1-45d4-99a3-816fef31f0c7
+		summarizeBy: none
+		sourceColumn: Year
+
+	/// Calendar quarter label (Q1-Q4).
+	column Quarter
+		dataType: string
+		lineageTag: 98077bb4-ef11-4df9-b137-b335cf8c4ae2
+		summarizeBy: none
+		sourceColumn: Quarter
+
+	/// Sort key for Year Quarter (yyyyq).
+	column 'Year Quarter Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9ea533c8-5509-4594-aa05-a166a777a6a0
+		summarizeBy: none
+		sourceColumn: Year Quarter Number
+
+	/// Year and quarter label, e.g. 2016 Q3. Sorted chronologically.
+	column 'Year Quarter'
+		dataType: string
+		lineageTag: bef90fb2-e279-4a6d-8615-dd4d367b3cc3
+		summarizeBy: none
+		sourceColumn: Year Quarter
+		sortByColumn: 'Year Quarter Number'
+
+	/// Month of year 1-12; sort key for Month Name.
+	column 'Month Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 78a2dbac-939b-462e-b8f6-997bf2ea36e2
+		summarizeBy: none
+		sourceColumn: Month Number
+
+	/// Short month name (Jan-Dec), sorted chronologically.
+	column 'Month Name'
+		dataType: string
+		lineageTag: 56758945-31f9-4335-83fb-a81a6635dd81
+		summarizeBy: none
+		sourceColumn: Month Name
+		sortByColumn: 'Month Number'
+
+	/// Sort key for Year Month (yyyymm).
+	column 'Year Month Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c3437e56-afa5-41e6-aab5-01432add0b56
+		summarizeBy: none
+		sourceColumn: Year Month Number
+
+	/// Month label, e.g. Mar 2016. Sorted chronologically - use for monthly trend axes.
+	column 'Year Month'
+		dataType: string
+		lineageTag: 73e07192-b531-402b-b5ae-2202ac0dbb86
+		summarizeBy: none
+		sourceColumn: Year Month
+		sortByColumn: 'Year Month Number'
+
+	/// First day of the month. Use as a continuous date axis for monthly trends.
+	column 'Month Start'
+		dataType: dateTime
+		formatString: MMM yyyy
+		lineageTag: 6f75e36a-9152-4cf3-98b5-8aa91bbb220c
+		summarizeBy: none
+		sourceColumn: Month Start
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// Day of week 1 (Monday) to 7 (Sunday); sort key for Day Name.
+	column 'Day Of Week Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c91d9f12-b69f-4894-b7b9-6e85039e05af
+		summarizeBy: none
+		sourceColumn: Day Of Week Number
+
+	/// Short day name (Mon-Sun), sorted Monday first.
+	column 'Day Name'
+		dataType: string
+		lineageTag: d69196d9-befc-4ef1-a995-d2da8ceb05a4
+		summarizeBy: none
+		sourceColumn: Day Name
+		sortByColumn: 'Day Of Week Number'
+
+	partition Date = m
+		mode: import
+		source =
+				let
+				    // Loans are posted between 2014-01-01 and 2017-07-26. Cover whole calendar years so year-level time intelligence works.
+				    #"Start Date" = #date(2014, 1, 1),
+				    #"End Date" = #date(2017, 12, 31),
+				    // One row per day, no gaps.
+				    #"Generated Date List" = List.Dates(#"Start Date", Duration.Days(#"End Date" - #"Start Date") + 1, #duration(1, 0, 0, 0)),
+				    #"Converted To Table" = Table.FromList(#"Generated Date List", Splitter.SplitByNothing(), type table [Date = date]),
+				    // Standard calendar attributes. Month and day names use en-US so they are stable across machines.
+				    #"Added Calendar Attributes" = Table.AddColumn(
+				        #"Converted To Table",
+				        "Attributes",
+				        each [
+				            Year = Date.Year([Date]),
+				            Quarter = "Q" & Text.From(Date.QuarterOfYear([Date])),
+				            #"Year Quarter" = Text.From(Date.Year([Date])) & " Q" & Text.From(Date.QuarterOfYear([Date])),
+				            #"Year Quarter Number" = Date.Year([Date]) * 10 + Date.QuarterOfYear([Date]),
+				            #"Month Number" = Date.Month([Date]),
+				            #"Month Name" = Date.ToText([Date], "MMM", "en-US"),
+				            #"Year Month" = Date.ToText([Date], "MMM yyyy", "en-US"),
+				            #"Year Month Number" = Date.Year([Date]) * 100 + Date.Month([Date]),
+				            #"Month Start" = Date.StartOfMonth([Date]),
+				            #"Day Of Week Number" = Date.DayOfWeek([Date], Day.Monday) + 1,
+				            #"Day Name" = Date.ToText([Date], "ddd", "en-US")
+				        ]
+				    ),
+				    #"Expanded Calendar Attributes" = Table.ExpandRecordColumn(
+				        #"Added Calendar Attributes",
+				        "Attributes",
+				        {"Year", "Quarter", "Year Quarter", "Year Quarter Number", "Month Number", "Month Name", "Year Month", "Year Month Number", "Month Start", "Day Of Week Number", "Day Name"}
+				    ),
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        #"Expanded Calendar Attributes",
+				        {
+				            {"Year", Int64.Type}, {"Quarter", type text}, {"Year Quarter", type text}, {"Year Quarter Number", Int64.Type},
+				            {"Month Number", Int64.Type}, {"Month Name", type text}, {"Year Month", type text}, {"Year Month Number", Int64.Type},
+				            {"Month Start", type date}, {"Day Of Week Number", Int64.Type}, {"Day Name", type text}
+				        }
+				    )
+				in
+				    #"Changed Types"
+
