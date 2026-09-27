@@ -797,6 +797,126 @@ table _Measures
 		displayFolder: HTML
 		lineageTag: 9d77c655-c111-4a81-b2eb-0bb5bd35a48f
 
+	/// Geography & Poverty KPI strip (1176x120): high-poverty share, loan-weighted MPI vs regional average, MPI coverage (with count of loan countries lacking MPI), reach, and an animated stacked bar of loan amount by MPI band (No MPI data shown explicitly).
+	measure 'HTML Geography KPIs' =
+			// Purpose : Poverty-targeting headline numbers, with the MPI data gap made visible.
+			// Logic   : Band bar = loan amount share per Countries[MPI Band] (ordered by MPI Band Order);
+			//           band shades are opacity steps of the accent colour so they work in both themes;
+			//           'No MPI data' is striped so it reads as missing, not as a poverty level.
+			// Used in : Geography & Poverty page, top row.
+			VAR _total = [Total Loan Amount]
+			VAR _bands =
+			    ADDCOLUMNS(
+			        SUMMARIZE('Countries', 'Countries'[MPI Band], 'Countries'[MPI Band Order]),
+			        "@amt", [Total Loan Amount]
+			    )
+			VAR _shown = FILTER(_bands, NOT ISBLANK([@amt]))
+			VAR _segs =
+			    CONCATENATEX(
+			        _shown,
+			        "<i class='seg" & IF('Countries'[MPI Band Order] = 5, " nd") & "' style='width:" & FORMAT(DIVIDE([@amt], _total) * 100, "0.00") & "%;opacity:"
+			            & SWITCH('Countries'[MPI Band Order], 1, "1", 2, ".72", 3, ".48", 4, ".28", "1") & "'></i>",
+			        "",
+			        'Countries'[MPI Band Order], ASC
+			    )
+			VAR _legend =
+			    CONCATENATEX(
+			        _shown,
+			        "<span><b class='sw" & IF('Countries'[MPI Band Order] = 5, " nd") & "' style='opacity:"
+			            & SWITCH('Countries'[MPI Band Order], 1, "1", 2, ".72", 3, ".48", 4, ".28", "1") & "'></b>"
+			            & 'Countries'[MPI Band] & " <em>" & FORMAT(DIVIDE([@amt], _total), "0%") & "</em></span>",
+			        "",
+			        'Countries'[MPI Band Order], ASC
+			    )
+			VAR _noMpiCountries = CALCULATE(DISTINCTCOUNTNOBLANK('Loans'[country]), KEEPFILTERS('Countries'[Has MPI Data] = "No"))
+			VAR _regions = COUNTROWS(FILTER(VALUES('Countries'[World Region]), NOT ISBLANK([Total Loans])))
+			VAR _tile = "<div class='t card fu d{d}'><div class='eyebrow'>{l}</div><div class='v'>{v}</div><div class='s'>{s}</div></div>"
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".gk{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 2.1fr;gap:12px;height:116px;overflow:hidden;}"
+			        & ".t{padding:12px 14px;overflow:hidden;}"
+			        & ".t .v{font-family:'Segoe UI Semibold';font-size:26px;font-weight:600;line-height:1.15;margin-top:4px;}"
+			        & ".t .s{font-size:11px;color:var(--muted);line-height:1.3;}"
+			        & ".bb{display:flex;height:16px;border-radius:8px;overflow:hidden;margin:10px 0 8px;background:var(--track);transform-origin:left center;animation:grow 1.2s cubic-bezier(.2,.7,.2,1) .4s both;}"
+			        & ".seg{display:block;height:100%;background:var(--accent);border-right:2px solid var(--card);}"
+			        & ".seg.nd,.sw.nd{background:repeating-linear-gradient(45deg,var(--track) 0 4px,var(--border) 4px 8px);}"
+			        & ".lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10.5px;color:var(--muted);}"
+			        & ".lg span{white-space:nowrap;} .lg em{font-style:normal;color:var(--text);font-weight:600;}"
+			        & ".sw{display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--accent);margin-right:5px;vertical-align:-1px;}"
+			        & "</style>"
+			        & "<div class='k'><div class='gk'>"
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "1"), "{l}", "High-poverty share"), "{v}", FORMAT([High-Poverty Loan Amount %], "0.0%")), "{s}", "of MPI-covered lending goes to countries with MPI &ge; 0.25")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "2"), "{l}", "Loan-weighted MPI"), "{v}", FORMAT([Loan-Weighted MPI], "0.000")), "{s}", "poverty of the average lent dollar vs " & FORMAT([Average Regional MPI], "0.000") & " regional average")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "3"), "{l}", "MPI coverage"), "{v}", FORMAT([MPI Coverage %], "0.0%")), "{s}", "of loan amount has an MPI score &middot; " & FORMAT(_noMpiCountries, "0") & " countries have none")
+			        & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(_tile, "{d}", "4"), "{l}", "Countries reached"), "{v}", FORMAT([Countries With Loans], "0")), "{s}", "across " & FORMAT(_regions, "0") & " world regions")
+			        & "<div class='t card fu d5'><div class='eyebrow'>Loan amount by country MPI band</div><div class='bb'>" & _segs & "</div><div class='lg'>" & _legend & "</div></div>"
+			        & "</div></div>"
+		displayFolder: HTML
+		lineageTag: 271bdf6e-e913-4134-bd09-a4e9224c73fb
+
+	/// Sector leaderboard (584x300): top 6 sectors by amount with an animated share bar, average loan, women's share, median days to fund and the sector's largest activity.
+	measure 'HTML Sector Leaderboard' =
+			// Purpose : Compare sectors across several dimensions in one compact table.
+			// Logic   : TOPN 6 sectors by amount in context; bar = share of the leader;
+			//           top activity = activity with the highest amount inside each sector.
+			// Used in : Sectors & Activities page.
+			VAR _top =
+			    ADDCOLUMNS(
+			        TOPN(6, FILTER(VALUES('Loans'[sector]), NOT ISBLANK([Total Loan Amount])), [Total Loan Amount], DESC),
+			        "@amt", [Total Loan Amount],
+			        "@avg", [Average Loan Amount],
+			        "@w", [Female Borrower %],
+			        "@d", [Median Days To Fund],
+			        "@act", MAXX(TOPN(1, VALUES('Loans'[activity]), [Total Loan Amount], DESC), 'Loans'[activity])
+			    )
+			VAR _max = MAXX(_top, [@amt])
+			VAR _ranked = ADDCOLUMNS(_top, "@rank", RANKX(_top, [@amt], , DESC, Dense))
+			VAR _rows =
+			    CONCATENATEX(
+			        _ranked,
+			        "<tr class='fu d" & MIN([@rank], 8) & "'><td class='rk'>" & [@rank] & "</td>"
+			            & "<td><div class='nm'>" & 'Loans'[sector] & "</div><div class='ac'>top: " & [@act] & "</div></td>"
+			            & "<td class='bw'><div class='tr'><i class='bar' style='width:" & FORMAT(DIVIDE([@amt], _max) * 100, "0") & "%;animation-delay:." & (2 + [@rank]) & "s'></i></div><span>" & FORMAT([@amt] / 1e6, "$#,0.0") & "M</span></td>"
+			            & "<td class='n'>" & FORMAT([@avg], "$#,0") & "</td>"
+			            & "<td class='n'>" & FORMAT([@w], "0%") & "</td>"
+			            & "<td class='n'>" & FORMAT([@d], "0.0") & "</td></tr>",
+			        "",
+			        [@amt], DESC
+			    )
+			RETURN
+			    [HTML Theme CSS]
+			        & "<style>"
+			        & ".sl{height:296px;padding:14px 16px 10px;overflow:hidden;}"
+			        & "table{width:100%;border-collapse:collapse;margin-top:6px;font-size:11.5px;}"
+			        & "th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:right;padding:2px 6px 6px;border-bottom:1px solid var(--grid);}"
+			        & "th.l{text-align:left;}"
+			        & "td{padding:5px 6px;border-bottom:1px solid var(--grid);vertical-align:middle;}"
+			        & "tr:last-child td{border-bottom:none;}"
+			        & ".rk{width:18px;color:var(--accent);font-weight:600;}"
+			        & ".nm{font-weight:600;}"
+			        & ".ac{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px;}"
+			        & ".bw{width:34%;}"
+			        & ".bw .tr{display:inline-block;width:62%;height:6px;border-radius:6px;background:var(--track);overflow:hidden;vertical-align:middle;}"
+			        & ".bw .tr i{display:block;height:100%;border-radius:6px;background:var(--accent);}"
+			        & ".bw span{margin-left:8px;font-family:'Segoe UI Semibold';font-weight:600;}"
+			        & ".n{text-align:right;white-space:nowrap;}"
+			        & "</style>"
+			        & "<div class='k'><div class='sl card'><div class='eyebrow fu d1'>Sector leaderboard &middot; top 6</div>"
+			        & "<table><tr><th></th><th class='l'>Sector</th><th class='l'>Amount</th><th>Avg loan</th><th>Women</th><th>Days</th></tr>"
+			        & _rows & "</table></div></div>"
+		displayFolder: HTML
+		lineageTag: a9f9eac6-19ec-4b0a-a8b1-cd0dcebaf288
+
+	/// Tile label for the Sectors & Activities metric switcher (the option name). Used as the slicer's Label so the selected tile keeps visible text.
+	measure 'Sector Metric Label' =
+			// Purpose : Text for each tile of the metric switcher.
+			// Logic   : Evaluated per slicer tile, where exactly one option is in context.
+			// Used in : Sectors & Activities metric switcher (Label role).
+			SELECTEDVALUE('Sector Metric'[Sector Metric])
+		displayFolder: Theme
+		lineageTag: 6cf2db5b-af83-4b37-8f1c-6f19d48771b7
+
 	/// Placeholder so the table has a column; not used.
 	column Placeholder
 		dataType: string

@@ -1,0 +1,44 @@
+/// Field parameter behind the Sectors & Activities metric switcher: Amount, Loans, Avg loan, Women %, Days to fund, Funded %. Select one tile to swap the bar chart's measure.
+table 'Sector Metric'
+	lineageTag: 0c5f59a9-39c3-4b23-a79d-a40783586a72
+
+	column 'Sector Metric Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 42c13390-b39b-4508-abcf-065182e2dfbb
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+	column 'Sector Metric Fields'
+		dataType: string
+		isHidden
+		lineageTag: e42bab56-7bb1-4305-bfc4-3c7fc3656160
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Sector Metric Order'
+
+		extendedProperty ParameterMetadata = {"version":3,"kind":2}
+
+	column 'Sector Metric'
+		dataType: string
+		lineageTag: 83c03574-de00-4e02-ae0a-93d51fcdf7f6
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Sector Metric Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Sector Metric Fields'
+
+	partition 'Sector Metric' = calculated
+		mode: import
+		source =
+				{
+				    ("Amount", NAMEOF('_Measures'[Total Loan Amount]), 0),
+				    ("Loans", NAMEOF('_Measures'[Total Loans]), 1),
+				    ("Avg loan", NAMEOF('_Measures'[Average Loan Amount]), 2),
+				    ("Women", NAMEOF('_Measures'[Female Borrower %]), 3),
+				    ("Days", NAMEOF('_Measures'[Median Days To Fund]), 4),
+				    ("Funded", NAMEOF('_Measures'[Funded %]), 5)
+				}
+

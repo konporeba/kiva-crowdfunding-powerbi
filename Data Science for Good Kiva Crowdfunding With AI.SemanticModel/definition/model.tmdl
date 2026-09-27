@@ -21,6 +21,7 @@ ref table 'Field Partners'
 ref table Date
 ref table _Measures
 ref table 'Theme Mode'
+ref table 'Sector Metric'
 
 ref cultureInfo en-US
 

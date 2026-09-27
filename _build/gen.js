@@ -26,7 +26,7 @@ const PAGES = [
   { key: 'overview', name: 'Overview', icon: 'overview', nav: true, slicers: true,
     subtitle: 'Headline lending volume, funding progress and how Kiva lending evolved month by month.' },
   { key: 'geography', name: 'Geography & Poverty', icon: 'geography', nav: true, slicers: true,
-    subtitle: 'Where Kiva capital flows, and how poor those places are on the Multidimensional Poverty Index (MPI).' },
+    subtitle: 'Where Kiva capital flows, and how poor those places are (Multidimensional Poverty Index).' },
   { key: 'sectors', name: 'Sectors & Activities', icon: 'sectors', nav: true, slicers: true,
     subtitle: 'What borrowers use their loans for, from agriculture and food to education.' },
   { key: 'borrowers', name: 'Borrowers & Gender', icon: 'borrowers', nav: true, slicers: true,
@@ -152,10 +152,13 @@ function dropdownSlicer(s) {
 }
 
 // Light/Dark toggle: two icon tiles (sun / moon), single-select, Light pre-selected, synced on every page.
-function themeToggle() {
+function themeToggle() { return finishDual(themeToggleRaw()); }
+function finishDual(v) { delete v.__dual; dualEntry(v.objects); return v; }
+function themeToggleRaw() {
   const modeCol = L.columnField('Theme Mode', 'Mode');
   return {
     visualType: 'advancedSlicerVisual',
+    __dual: true,
     syncGroup: { groupName: 'SyncThemeMode', fieldChanges: true, filterChanges: true },
     query: { queryState: {
       Values: { projections: [cProj('Theme Mode', 'Mode')] },
@@ -281,7 +284,7 @@ function main() {
     const builderPath = path.join(__dirname, 'pages', page.key + '.js');
     if (fs.existsSync(builderPath)) {
       delete require.cache[require.resolve(builderPath)];
-      content = require(builderPath)({ page, PAGES, L, pos, visualFile, htmlVisual, button, shapeRect, shapeText, CX, CW, W, H });
+      content = require(builderPath)({ page, PAGES, L, pos, visualFile, htmlVisual, button, shapeRect, shapeText, dualEntry, CX, CW, W, H });
     }
     const drawer = hid(`${page.key}:drawer`);
     for (const v of [...chrome(page, bm), ...content]) {

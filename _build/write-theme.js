@@ -30,7 +30,9 @@ const FONT_SEMI = 'Segoe UI Semibold';
 const theme = {
   $schema: 'https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.157.json',
   name: null, // set below
-  dataColors: [T.cerulean, T.frostedBlue, T.oxfordNavy, T.ceruleanTint, T.ceruleanShade, T.frostedShade, T.navyTint, T.frostedTint],
+  // 16 palette-derived colours so Power BI never auto-generates off-palette hues.
+  dataColors: [T.cerulean, T.frostedBlue, T.oxfordNavy, T.ceruleanTint, T.ceruleanShade, T.frostedShade, T.navyTint, T.frostedTint,
+    '#5B8FB0', '#8FC4C7', '#3F5370', '#B6CCDB', '#243F55', '#5E7B7C', '#566881', '#C5E6E7'],
   good: T.cerulean,
   neutral: T.frostedBlue,
   bad: T.punchRed,
